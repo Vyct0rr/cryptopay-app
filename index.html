@@ -6,66 +6,32 @@
     <title>CryptoPay</title>
     <style>
         /* CORE STYLES */
-        :root {
-            --primary: #4F46E5;
-            --bg: #F3F4F6;
-            --card-bg: #ffffff;
-            --text-main: #1F2937;
-            --text-sub: #6B7280;
-            --border: #E5E7EB;
-            --success: #10B981;
-            --danger: #EF4444;
-        }
-        body.dark-mode {
-            --bg: #111827;
-            --card-bg: #1F2937;
-            --text-main: #F9FAFB;
-            --text-sub: #9CA3AF;
-            --border: #374151;
-        }
+        :root { --primary: #4F46E5; --bg: #F3F4F6; --card-bg: #ffffff; --text-main: #1F2937; --text-sub: #6B7280; --border: #E5E7EB; --success: #10B981; --danger: #EF4444; --gold: #F59E0B; }
+        body.dark-mode { --bg: #111827; --card-bg: #1F2937; --text-main: #F9FAFB; --text-sub: #9CA3AF; --border: #374151; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text-main); padding-bottom: 90px; height: 100vh; overflow: hidden; }
         
         /* UTILITIES */
-        .flex { display: flex; }
-        .justify-between { justify-content: space-between; }
-        .items-center { align-items: center; }
-        .p-4 { padding: 16px; }
-        .mb-4 { margin-bottom: 16px; }
-        .text-center { text-align: center; }
-        .font-bold { font-weight: 700; }
-        .text-xl { font-size: 1.25rem; }
-        .text-sm { font-size: 0.875rem; }
-        .text-gray { color: var(--text-sub); }
-        .text-success { color: var(--success); }
-        .text-danger { color: var(--danger); }
+        .flex { display: flex; } .justify-between { justify-content: space-between; } .items-center { align-items: center; }
+        .p-4 { padding: 16px; } .mb-4 { margin-bottom: 16px; } .text-center { text-align: center; }
+        .font-bold { font-weight: 700; } .text-xl { font-size: 1.25rem; } .text-sm { font-size: 0.875rem; }
+        .text-gray { color: var(--text-sub); } .text-success { color: var(--success); } .text-gold { color: var(--gold); }
         
-        /* SCREENS */
+        /* SCREENS & MODALS */
         #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; transition: opacity 0.5s; }
         #onboarding-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 400; display: none; flex-direction: column; padding: 40px 20px; justify-content: center; text-align: center; }
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); color: white; z-index: 300; display: none; flex-direction: column; align-items: center; justify-content: center; }
         #app-container { height: 100%; overflow-y: auto; display: none; }
-
-        /* SPLASH & ONBOARDING */
-        .logo-bounce { font-size: 3rem; animation: bounce 2s infinite; margin-bottom: 20px; }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-20px);} 60% {transform: translateY(-10px);} }
-        .slide { display: none; animation: fadeIn 0.5s; }
-        .slide.active { display: block; }
-        .dot-indicator { height: 8px; width: 8px; background-color: #bbb; border-radius: 50%; display: inline-block; margin: 0 4px; }
-        .dot-indicator.active { background-color: var(--primary); width: 20px; border-radius: 4px; }
-
-        /* LOGIN PIN */
-        .pin-dot { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; margin: 0 10px; transition: 0.2s; }
-        .pin-dot.filled { background: white; border-color: white; }
-        .keypad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 40px; }
-        .key { width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; cursor: pointer; }
-        .key:active { background: rgba(255,255,255,0.3); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 100; display: none; justify-content: center; align-items: flex-end; }
+        .modal-sheet { background: var(--card-bg); width: 100%; padding: 25px; border-radius: 24px 24px 0 0; animation: slideUp 0.3s ease; max-height: 85vh; overflow-y: auto; color: var(--text-main); }
+        @keyframes slideUp { from {transform: translateY(100%);} to {transform: translateY(0);} }
 
         /* COMPONENTS */
         .card { background: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 15px; border: 1px solid var(--border); }
         .btn { border: none; padding: 14px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; font-size: 1rem; margin-top: 10px; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-success { background: var(--success); color: white; }
+        .btn-gold { background: var(--gold); color: white; }
         .btn-outline { border: 1px solid var(--border); background: var(--card-bg); color: var(--text-sub); }
         .btn-outline.active { border-color: var(--primary); color: var(--primary); background: rgba(79, 70, 229, 0.1); }
         
@@ -80,71 +46,40 @@
         .nav-item.active { color: var(--primary); }
         .nav-icon { font-size: 1.4rem; margin-bottom: 4px; }
 
-        /* HOME SPECIFIC */
+        /* UI ELEMENTS */
         .balance-card { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; text-align: center; padding: 35px 20px; border-radius: 24px; margin-bottom: 25px; }
         .balance-amount { font-size: 2.5rem; font-weight: 800; margin: 10px 0; }
         .action-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 25px; }
         .action-btn { background: var(--card-bg); padding: 16px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-decoration: none; color: var(--text-main); border: 1px solid var(--border); }
         .recent-tx-item { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
         
-        /* PAY GRID */
-        .pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .pay-item { background: var(--card-bg); padding: 20px; border-radius: 16px; text-align: center; border: 1px solid var(--border); cursor: pointer; color: var(--text-main); }
-        .pay-icon { font-size: 2rem; margin-bottom: 10px; display: block; }
+        /* PIN & ONBOARDING ANIMATION */
+        .logo-bounce { font-size: 3rem; animation: bounce 2s infinite; margin-bottom: 20px; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-20px);} 60% {transform: translateY(-10px);} }
+        .pin-dot { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; margin: 0 10px; transition: 0.2s; }
+        .pin-dot.filled { background: white; border-color: white; }
+        .keypad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 40px; }
+        .key { width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; cursor: pointer; }
+        .key:active { background: rgba(255,255,255,0.3); }
 
-        /* MODALS */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 100; display: none; justify-content: center; align-items: flex-end; }
-        .modal-sheet { background: var(--card-bg); width: 100%; padding: 25px; border-radius: 24px 24px 0 0; animation: slideUp 0.3s ease; max-height: 85vh; overflow-y: auto; color: var(--text-main); }
-        @keyframes slideUp { from {transform: translateY(100%);} to {transform: translateY(0);} }
-        
-        /* NOTIFICATIONS */
-        .notif-item { display: flex; gap: 10px; padding: 15px 0; border-bottom: 1px solid var(--border); }
-        .notif-icon { width: 40px; height: 40px; background: #E0E7FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-        
-        /* TABS */
-        .tab-group { display: flex; margin-bottom: 20px; background: var(--bg); padding: 4px; border-radius: 12px; }
-        .tab-btn { flex: 1; padding: 10px; border-radius: 10px; text-align: center; font-size: 0.9rem; font-weight: 600; cursor: pointer; color: var(--text-sub); }
-        .tab-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        /* SAVINGS & REFERRAL */
+        .savings-card { background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; }
+        .referral-box { border: 2px dashed var(--primary); background: rgba(79, 70, 229, 0.05); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 15px; }
 
     </style>
 </head>
 <body>
 
-    <div id="splash-screen">
-        <div class="logo-bounce">💎</div>
-        <h1 class="font-bold text-xl">CryptoPay</h1>
-        <p class="text-sm" style="opacity:0.8; margin-top:10px">Loading secure wallet...</p>
-    </div>
+    <div id="splash-screen"><div class="logo-bounce">💎</div><h1 class="font-bold text-xl">CryptoPay</h1></div>
 
     <div id="onboarding-screen">
-        <div class="slide active" id="slide1">
-            <div style="font-size:4rem; margin-bottom:20px">🚀</div>
-            <h2 class="font-bold text-xl">Fast & Borderless</h2>
-            <p class="text-gray mb-4">Send money across Africa instantly using crypto rails.</p>
-        </div>
-        <div class="slide" id="slide2">
-            <div style="font-size:4rem; margin-bottom:20px">🔒</div>
-            <h2 class="font-bold text-xl">Secure Wallet</h2>
-            <p class="text-gray mb-4">Your funds are safe with our bank-grade security PIN.</p>
-        </div>
-        <div class="slide" id="slide3">
-            <div style="font-size:4rem; margin-bottom:20px">💸</div>
-            <h2 class="font-bold text-xl">Low Fees</h2>
-            <p class="text-gray mb-4">Swap and send for just 1% fee. No hidden charges.</p>
-        </div>
-        
-        <div style="margin-top:20px; margin-bottom:40px">
-            <span class="dot-indicator active" id="dot1"></span>
-            <span class="dot-indicator" id="dot2"></span>
-            <span class="dot-indicator" id="dot3"></span>
-        </div>
-        
-        <button class="btn btn-primary" onclick="nextSlide()" id="onboard-btn">Next</button>
+        <div id="slide1"><div style="font-size:4rem; margin-bottom:20px">🚀</div><h2 class="font-bold text-xl">Fast & Borderless</h2><p class="text-gray mb-4">Send money instantly.</p></div>
+        <button class="btn btn-primary" onclick="finishOnboard()">Get Started</button>
     </div>
 
     <div id="login-screen">
         <div style="font-size:2rem; font-weight:bold; margin-bottom:10px">CryptoPay</div>
-        <p style="opacity:0.8; margin-bottom:30px" id="welcome-msg">Welcome Back</p>
+        <p style="opacity:0.8; margin-bottom:30px">Enter PIN (1234)</p>
         <div style="display:flex; margin-bottom:20px"><div class="pin-dot" id="p1"></div><div class="pin-dot" id="p2"></div><div class="pin-dot" id="p3"></div><div class="pin-dot" id="p4"></div></div>
         <div class="keypad">
             <div class="key" onclick="pressKey(1)">1</div><div class="key" onclick="pressKey(2)">2</div><div class="key" onclick="pressKey(3)">3</div>
@@ -152,7 +87,6 @@
             <div class="key" onclick="pressKey(7)">7</div><div class="key" onclick="pressKey(8)">8</div><div class="key" onclick="pressKey(9)">9</div>
             <div class="key"></div><div class="key" onclick="pressKey(0)">0</div><div class="key" onclick="clearPin()">⌫</div>
         </div>
-        <p class="text-sm mt-4" style="opacity:0.6">Default PIN: 1234</p>
     </div>
 
     <div id="app-container">
@@ -170,163 +104,165 @@
             <a href="#" class="nav-item active" onclick="router('home')"><span class="nav-icon">🏠</span>Home</a>
             <a href="#" class="nav-item" onclick="router('pay')"><span class="nav-icon">📱</span>Pay</a>
             <a href="#" class="nav-item" onclick="router('send')"><span class="nav-icon">💸</span>Send</a>
-            <a href="#" class="nav-item" onclick="router('swap')"><span class="nav-icon">🔄</span>Swap</a>
+            <a href="#" class="nav-item" onclick="router('savings')"><span class="nav-icon">💰</span>Earn</a>
             <a href="#" class="nav-item" onclick="router('wallet')"><span class="nav-icon">💼</span>Wallet</a>
         </nav>
     </div>
 
-    <div id="notif-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'">
+    <div id="savings-topup-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'">
         <div class="modal-sheet">
-            <h2 class="font-bold text-xl mb-4">Notifications</h2>
-            <div class="notif-item">
-                <div class="notif-icon">🔒</div>
-                <div><div class="font-bold text-sm">Security Alert</div><div class="text-xs text-gray">Your PIN was used to login successfully.</div></div>
-            </div>
-            <div class="notif-item">
-                <div class="notif-icon">🎁</div>
-                <div><div class="font-bold text-sm">Refer & Earn</div><div class="text-xs text-gray">Invite friends and earn ₦500 per user!</div></div>
-            </div>
-             <div class="notif-item">
-                <div class="notif-icon">📢</div>
-                <div><div class="font-bold text-sm">System Update</div><div class="text-xs text-gray">USDC Deposits are now faster on Solana.</div></div>
-            </div>
-            <button class="btn btn-primary" onclick="document.getElementById('notif-modal').style.display='none'">Close</button>
+            <h2 class="font-bold text-xl mb-4">Lock Funds</h2>
+            <p class="text-sm text-gray mb-4">Earn 15% APY. Interest paid daily.</p>
+            <div class="input-group"><label>Amount (NGN)</label><input type="number" id="save-amt" class="input-field" placeholder="10000"><div class="text-xs text-gray mt-2">Wallet Bal: <span id="save-bal"></span></div></div>
+            <button class="btn btn-gold" onclick="processSave()">Lock & Earn</button>
         </div>
     </div>
 
-    <div id="receive-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'">
-        <div class="modal-sheet">
-            <h2 class="font-bold text-xl mb-4 text-center">Receive Money</h2>
-            <div class="tab-group">
-                <div class="tab-btn active" id="tab-crypto" onclick="switchRecv('crypto')">Crypto</div>
-                <div class="tab-btn" id="tab-fiat" onclick="switchRecv('fiat')">Bank Transfer</div>
+    <div id="referral-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'">
+        <div class="modal-sheet text-center">
+            <div style="font-size:4rem; margin-bottom:10px">🎁</div>
+            <h2 class="font-bold text-xl mb-2">Invite & Earn</h2>
+            <p class="text-gray text-sm mb-4">Get ₦500 for every friend who joins.</p>
+            <div class="referral-box">
+                <div class="text-xs text-gray mb-1">YOUR CODE</div>
+                <div class="font-bold text-xl" style="letter-spacing:2px; color:var(--primary)">@JD-8821</div>
             </div>
-            <div id="recv-crypto-section">
-                <div class="input-group"><label>Asset</label><select id="recv-asset" class="select-field" onchange="updateAddr()"><option value="USDC">USDC (Stablecoin)</option><option value="BTC">Bitcoin</option></select></div>
-                <div class="input-group"><label>Network</label><select id="recv-net" class="select-field" onchange="updateAddr()"><option value="BASE">Base</option><option value="SOL">Solana</option></select></div>
-                <div class="card flex flex-col items-center justify-center p-4" style="background:white; border:1px solid #eee;"><img id="qr-image" src="" style="width:160px; height:160px; opacity:0.9; margin-bottom:15px"><p class="text-xs text-gray mb-1">Deposit Address</p><div class="text-xs font-bold text-center" style="font-family:monospace; word-break:break-all; background:#f9f9f9; padding:8px; border-radius:8px; width:100%" id="wallet-addr">...</div></div>
-                <button class="btn btn-primary" onclick="copyAddr()">Copy Address</button>
-            </div>
-            <div id="recv-fiat-section" style="display:none">
-                <div class="card" style="background:linear-gradient(135deg, #111827 0%, #1F2937 100%); color:white; border:none;"><div class="text-sm text-gray" style="margin-bottom:5px">Virtual Account</div><div class="font-bold text-xl mb-4" style="letter-spacing:2px" id="v-acct-num">8123456789</div><div class="flex justify-between"><div><div class="text-xs text-gray">Bank Name</div><div class="font-bold text-sm">CryptoPay MFB</div></div><div class="text-right"><div class="text-xs text-gray">Account Name</div><div class="font-bold text-sm">John Doe</div></div></div></div>
-                <button class="btn btn-primary" onclick="copyFiat()">Copy Account Number</button>
+            <button class="btn btn-primary" onclick="alert('Link Copied!')">Copy Invite Link</button>
+            <div class="mt-6 text-left">
+                <h3 class="font-bold text-sm mb-2">Earnings</h3>
+                <div class="card flex justify-between p-3" style="margin:0"><span class="text-gray">Total Earned</span><span class="font-bold text-success">₦0.00</span></div>
             </div>
         </div>
     </div>
 
-    <div id="scanner-modal" class="modal-overlay" style="background:black; z-index:300;"><div style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;"><div style="width:250px; height:250px; border:2px solid rgba(255,255,255,0.5); border-radius:20px; position:relative; overflow:hidden;"><div class="scan-line"></div></div><p class="mt-4" style="color:white; font-weight:bold;">Scanning...</p><button class="btn btn-outline" style="position:absolute; bottom:50px; width:50%; color:white; border-color:white;" onclick="document.getElementById('scanner-modal').style.display='none'">Cancel</button></div></div>
-    <div id="tx-detail-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'"><div class="modal-sheet"><div class="text-center mb-4"><div style="font-size:3rem">🧾</div><h2 class="font-bold text-xl">Receipt</h2></div><div class="card" style="border:none; background:var(--bg)"><div class="detail-row"><span class="detail-label">Type</span><span class="font-bold" id="tx-type"></span></div><div class="detail-row"><span class="detail-label">Amt</span><span class="font-bold" id="tx-amt"></span></div><div class="detail-row"><span class="detail-label">Desc</span><span id="tx-desc"></span></div><div class="detail-row"><span class="detail-label">Date</span><span id="tx-date"></span></div></div><button class="btn btn-primary" onclick="alert('Shared!')">Share</button></div></div>
-    <div id="profile-modal" class="modal-overlay" onclick="if(event.target===this) closeProfile()"><div class="modal-sheet"><div class="text-center mb-4"><h2 class="font-bold text-xl">John Doe <span style="color:#3B82F6">✓</span></h2><div class="text-gray text-sm">@johndoe</div></div><div class="flex justify-between items-center p-4 border-b"><span>Dark Mode</span><input type="checkbox" id="dark-toggle" onchange="toggleDark()"></div><button class="btn btn-outline" style="color:var(--danger); margin-top:20px" onclick="resetApp()">Reset App</button></div></div>
-    <div id="bill-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'"><div class="modal-sheet"><h2 class="font-bold text-xl mb-4">Pay Bill</h2><div class="input-group"><label>Target</label><input type="tel" id="bill-target" class="input-field"></div><div class="input-group"><label>Amount</label><input type="number" id="bill-amt" class="input-field"></div><button class="btn btn-primary" onclick="processBill()">Pay Now</button></div></div>
-    <div id="deposit-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'"><div class="modal-sheet"><h2 class="font-bold text-xl mb-4">Add Money</h2><div class="input-group"><label>Source</label><select class="select-field"><option>Bank Card</option></select></div><div class="input-group"><label>Amount (NGN)</label><input type="number" id="dep-amt" class="input-field"></div><button class="btn btn-success" onclick="processDeposit()">Fund Wallet</button></div></div>
-    <div id="receipt-modal" class="modal-overlay" style="align-items:center;"><div class="modal-sheet text-center" style="border-radius:20px;"><div style="font-size:4rem">✅</div><h2 class="font-bold text-xl">Success!</h2><p id="receipt-msg" class="text-gray mt-4"></p><button class="btn btn-primary mt-4" onclick="closeReceipt()">Done</button></div></div>
+    <div id="notif-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'"><div class="modal-sheet"><h2 class="font-bold text-xl mb-4">Notifications</h2><div class="card p-3 mb-2">👋 Welcome to CryptoPay!</div><button class="btn btn-outline" onclick="this.parentElement.parentElement.style.display='none'">Close</button></div></div>
+    <div id="receive-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'"><div class="modal-sheet"><h2 class="font-bold text-center">Receive</h2><div class="card text-center p-4"><img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=JohnDoe" style="width:150px"><p class="font-bold mt-2">@johndoe</p></div></div></div>
+    <div id="scanner-modal" class="modal-overlay" style="background:black;"><div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:white;">Scanning...<button class="btn btn-outline" style="position:absolute;bottom:50px;color:white;border-color:white" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
+    <div id="receipt-modal" class="modal-overlay" style="align-items:center;"><div class="modal-sheet text-center"><div style="font-size:4rem">✅</div><h2 class="font-bold text-xl">Success!</h2><p id="receipt-msg" class="text-gray mt-4"></p><button class="btn btn-primary mt-4" onclick="closeReceipt()">Done</button></div></div>
+    <div id="profile-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'"><div class="modal-sheet"><h2 class="font-bold">John Doe</h2><button class="btn btn-outline mt-4" onclick="localStorage.clear();location.reload()">Reset App</button></div></div>
 
     <script>
-        // --- APP LIFECYCLE ---
+        // --- APP STARTUP ---
         window.onload = function() {
-            // 1. Splash Screen
             setTimeout(() => {
                 document.getElementById('splash-screen').style.opacity = '0';
-                setTimeout(() => document.getElementById('splash-screen').style.display = 'none', 500);
-                
-                // 2. Check Onboarding
-                if(!localStorage.getItem('cryptopay_onboarded')) {
-                    document.getElementById('onboarding-screen').style.display = 'flex';
-                } else {
-                    document.getElementById('login-screen').style.display = 'flex';
-                }
-            }, 2500);
+                setTimeout(() => { document.getElementById('splash-screen').style.display = 'none'; checkAuth(); }, 500);
+            }, 2000);
         };
+        function checkAuth() {
+            if(!localStorage.getItem('cp_onboard')) document.getElementById('onboarding-screen').style.display='flex';
+            else document.getElementById('login-screen').style.display='flex';
+        }
+        function finishOnboard() { localStorage.setItem('cp_onboard','true'); document.getElementById('onboarding-screen').style.display='none'; document.getElementById('login-screen').style.display='flex'; }
 
-        // --- ONBOARDING LOGIC ---
-        let currentSlide = 1;
-        function nextSlide() {
-            if(currentSlide < 3) {
-                document.getElementById('slide'+currentSlide).classList.remove('active');
-                document.getElementById('dot'+currentSlide).classList.remove('active');
-                currentSlide++;
-                document.getElementById('slide'+currentSlide).classList.add('active');
-                document.getElementById('dot'+currentSlide).classList.add('active');
-                if(currentSlide === 3) document.getElementById('onboard-btn').textContent = "Get Started";
-            } else {
-                localStorage.setItem('cryptopay_onboarded', 'true');
-                document.getElementById('onboarding-screen').style.display = 'none';
-                document.getElementById('login-screen').style.display = 'flex';
-            }
+        // --- AUTH ---
+        let pin=""; function pressKey(n){ if(pin.length<4){pin+=n;upUI();} if(pin.length===4)setTimeout(()=>{if(pin==="1234"){document.getElementById('login-screen').style.display='none';document.getElementById('app-container').style.display='block';}else{alert("PIN: 1234");pin="";upUI();}},100); }
+        function clearPin(){pin=pin.slice(0,-1);upUI();} function upUI(){for(let i=1;i<=4;i++)document.getElementById('p'+i).className=i<=pin.length?"pin-dot filled":"pin-dot";}
+
+        // --- STATE ---
+        const defState = { wallets: {NGN:25000, USDC:100}, savings: {balance:0, profit:0}, rates:{USDC_NGN:1500}, history:[] };
+        let state = JSON.parse(JSON.stringify(defState));
+        try{const s=localStorage.getItem('cp_state_v11'); if(s)state=JSON.parse(s);}catch(e){}
+        function save(){localStorage.setItem('cp_state_v11',JSON.stringify(state));}
+
+        // --- ROUTER ---
+        function router(s) {
+            document.getElementById('app-content').innerHTML = '';
+            document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+            document.querySelector(`.nav-item[onclick="router('${s}')"]`).classList.add('active');
+            if(s==='home') renderHome(); else if(s==='pay') renderPay(); else if(s==='send') renderSend(); else if(s==='savings') renderSavings(); else if(s==='wallet') renderWallet();
         }
 
-        // --- AUTH & STATE ---
-        let pin = "";
-        function pressKey(num) {
-            if(pin.length < 4) { pin += num; updatePinUI(); }
-            if(pin.length === 4) setTimeout(() => { if(pin==="1234") { document.getElementById('login-screen').style.display='none'; document.getElementById('app-container').style.display='block'; } else { alert("Wrong PIN (1234)"); pin=""; updatePinUI(); } }, 100);
-        }
-        function clearPin() { pin = pin.slice(0, -1); updatePinUI(); }
-        function updatePinUI() { for(let i=1; i<=4; i++) document.getElementById('p'+i).className = i <= pin.length ? "pin-dot filled" : "pin-dot"; }
-
-        const defaultState = { wallets: { NGN: 25000.00, USDC: 100.00 }, rates: { USDC_NGN: 1500 }, history: [{ type:'Welcome', desc:'Account Created', amount:'N/A', date:'Nov 20' }], darkMode: false, phone: '08123456789' };
-        let state = JSON.parse(JSON.stringify(defaultState));
-        let sendMode='wallet'; let activeBill='';
-
-        try { const saved=localStorage.getItem('cryptopayState_v10'); if(saved) state=JSON.parse(saved); } catch(e){}
-        if(state.darkMode) { document.body.classList.add('dark-mode'); setTimeout(()=>document.getElementById('dark-toggle').checked=true,100); }
-        function saveState() { localStorage.setItem('cryptopayState_v10', JSON.stringify(state)); }
-
-        // --- ROUTER & SCREENS ---
-        function router(screen) {
-            const app = document.getElementById('app-content');
-            if(!app) return;
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            const activeNav = document.querySelector(`.nav-item[onclick="router('${screen}')"]`);
-            if(activeNav) activeNav.classList.add('active');
-            if(screen==='home') renderHome(app); else if(screen==='pay') renderPay(app); else if(screen==='send') renderSend(app); else if(screen==='swap') renderSwap(app); else if(screen==='wallet') renderWallet(app);
-        }
-
-        function renderHome(c) {
-            const val = state.wallets.USDC + (state.wallets.NGN/state.rates.USDC_NGN);
-            c.innerHTML = `
+        // --- RENDERERS ---
+        function renderHome() {
+            const tot = state.wallets.USDC + (state.wallets.NGN/state.rates.USDC_NGN) + (state.savings.balance/state.rates.USDC_NGN);
+            const html = `
                 <div class="balance-card">
                     <div class="text-sm" style="opacity:0.9">Total Net Worth</div>
-                    <div class="balance-amount">$${val.toFixed(2)}</div>
-                    <div class="text-sm">≈ ₦${((state.wallets.USDC*state.rates.USDC_NGN)+state.wallets.NGN).toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+                    <div class="balance-amount">$${tot.toFixed(2)}</div>
+                    <div class="text-sm">≈ ₦${((tot*state.rates.USDC_NGN)).toLocaleString(undefined,{maximumFractionDigits:0})}</div>
                 </div>
                 <div class="action-grid">
                     <a class="action-btn" onclick="router('send')"><span style="font-size:1.5rem">📤</span><span class="font-bold text-sm">Send</span></a>
-                    <a class="action-btn" onclick="openReceive()"><span style="font-size:1.5rem">📥</span><span class="font-bold text-sm">Receive</span></a>
-                    <a class="action-btn" onclick="router('pay')"><span style="font-size:1.5rem">🧾</span><span class="font-bold text-sm">Pay</span></a>
+                    <a class="action-btn" onclick="openRecv()"><span style="font-size:1.5rem">📥</span><span class="font-bold text-sm">Receive</span></a>
+                    <a class="action-btn" onclick="openRef()"><span style="font-size:1.5rem">🎁</span><span class="font-bold text-sm">Invite</span></a>
                 </div>
                 <h3 class="font-bold mb-2">Recent Activity</h3>
-                ${state.history.map((tx,i) => `<div class="recent-tx-item" onclick="openTxDetail(${i})"><div><div class="font-bold">${tx.type}</div><div class="text-xs text-gray">${tx.desc}</div></div><div class="font-bold ${tx.amount.includes('-')?'text-danger':'text-success'}">${tx.amount}</div></div>`).join('')}`;
+                ${state.history.length ? state.history.map(t=>`<div class="recent-tx-item"><div><div class="font-bold">${t.type}</div><div class="text-xs text-gray">${t.desc}</div></div><div class="font-bold ${t.amt.includes('-')?'text-danger':'text-success'}">${t.amt}</div></div>`).join('') : '<div class="text-center text-gray p-4">No activity yet</div>'}
+            `;
+            document.getElementById('app-content').innerHTML = html;
         }
-        function renderPay(c) { c.innerHTML = `<h2 class="font-bold text-xl mb-4">Pay Bills</h2><div class="card flex items-center justify-between" style="padding:15px; cursor:pointer" onclick="openScanner()"><div><div class="font-bold">Scan to Pay</div><div class="text-xs text-gray">Tap to scan QR</div></div><div style="font-size:2rem">📷</div></div><div class="pay-grid"><div class="pay-item" onclick="openBill('Airtime')"><span class="pay-icon">📱</span><div class="font-bold text-sm">Airtime</div></div><div class="pay-item" onclick="openBill('Data')"><span class="pay-icon">📶</span><div class="font-bold text-sm">Data</div></div><div class="pay-item" onclick="openBill('Power')"><span class="pay-icon">💡</span><div class="font-bold text-sm">Power</div></div></div>`; }
-        function renderSend(c) { const isBank=sendMode==='bank'; c.innerHTML = `<h2 class="font-bold text-xl mb-4">Send Money</h2><div class="flex mb-4"><button class="btn btn-outline ${!isBank?'active':''}" style="margin-right:10px; flex:1" onclick="sendMode='wallet'; router('send')">To Wallet</button><button class="btn btn-outline ${isBank?'active':''}" style="flex:1" onclick="sendMode='bank'; router('send')">To Bank</button></div><div class="card">${isBank ? `<div class="input-group"><label>Bank</label><select class="select-field"><option>GTBank</option><option>OPay</option></select></div><div class="input-group"><label>Account</label><input type="number" class="input-field"></div>` : `<div class="input-group"><label>Username</label><input type="text" id="send-user" class="input-field"></div>`}<div class="input-group"><label>Amount</label><input type="number" id="s-amt" class="input-field"><div class="text-xs text-gray mt-2">Fee: 1%</div></div><button class="btn btn-primary mt-4" onclick="processSend()">${isBank?'Send to Bank':'Send Crypto'}</button></div>`; }
-        function renderWallet(c) { c.innerHTML = `<h2 class="font-bold text-xl mb-4">My Assets</h2><div class="card flex justify-between items-center mb-3"><div><div class="font-bold text-xl">🇳🇬 NGN</div></div><div class="text-right"><div class="font-bold text-xl">₦${state.wallets.NGN.toLocaleString()}</div><button class="btn btn-outline" style="padding:5px 10px; margin-top:5px; font-size:0.8rem" onclick="document.getElementById('deposit-modal').style.display='flex'">+ Add Money</button></div></div><div class="card flex justify-between items-center"><div><div class="font-bold text-xl">🇺🇸 USDC</div></div><div class="font-bold text-xl">$${state.wallets.USDC.toFixed(2)}</div></div>`; }
-        function renderSwap(c) { c.innerHTML = `<h2 class="font-bold text-xl mb-4">Swap Crypto</h2><div class="card"><div class="input-group"><label>From (NGN)</label><input type="number" id="swapAmt" class="input-field" oninput="calcSwap()"></div><div class="text-center my-2">⬇️</div><div class="input-group"><label>To (USDC)</label><input type="text" id="swapOut" class="input-field" disabled></div><button class="btn btn-primary" onclick="processSwap()">Swap Now</button></div>`; }
 
-        // --- FEATURES ---
-        function openNotifs() { document.getElementById('notif-modal').style.display='flex'; }
-        function openReceive() { switchRecv('crypto'); updateAddr(); const acct = state.phone.substring(1); document.getElementById('v-acct-num').textContent = acct; document.getElementById('receive-modal').style.display = 'flex'; }
-        function switchRecv(type) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('tab-'+type).classList.add('active'); if(type === 'crypto') { document.getElementById('recv-crypto-section').style.display = 'block'; document.getElementById('recv-fiat-section').style.display = 'none'; } else { document.getElementById('recv-crypto-section').style.display = 'none'; document.getElementById('recv-fiat-section').style.display = 'block'; } }
-        function updateAddr() { const net = document.getElementById('recv-net').value; let addr = "0x..."; if(net === 'SOL') addr = "8x" + Math.random().toString(36).substr(2, 8).toUpperCase() + "...SOL"; else addr = "0x" + Math.random().toString(16).substr(2, 8).toUpperCase() + "...ETH"; document.getElementById('wallet-addr').textContent = addr; document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${addr}`; }
-        function copyAddr() { alert("Address Copied!"); } function copyFiat() { alert("Account Copied!"); }
-        function openScanner() { document.getElementById('scanner-modal').style.display = 'flex'; setTimeout(() => { document.getElementById('scanner-modal').style.display = 'none'; sendMode = 'wallet'; router('send'); setTimeout(() => document.getElementById('send-user').value = "@shoprite_pos", 100); }, 2500); }
+        function renderSavings() {
+            const html = `
+                <h2 class="font-bold text-xl mb-4">Earn Yield</h2>
+                <div class="card savings-card text-center p-4">
+                    <div class="text-sm" style="opacity:0.9">Savings Vault</div>
+                    <div class="font-bold" style="font-size:2rem">₦${state.savings.balance.toLocaleString()}</div>
+                    <div class="text-xs mt-1">+ ₦${state.savings.profit.toLocaleString()} Profit Earned</div>
+                </div>
+                <div class="card">
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="font-bold">Standard Vault</div>
+                        <div class="text-gold font-bold">15% APY</div>
+                    </div>
+                    <p class="text-xs text-gray mb-4">Lock funds for 30 days. Interest paid daily.</p>
+                    <button class="btn btn-primary" onclick="openSaveModal()">Add Funds</button>
+                </div>
+                <h3 class="font-bold mt-4 mb-2">Referrals</h3>
+                <div class="card flex justify-between items-center" onclick="openRef()">
+                    <div>
+                        <div class="font-bold">Invite Friends</div>
+                        <div class="text-xs text-gray">Earn ₦500 per invite</div>
+                    </div>
+                    <div style="font-size:1.5rem">🎁</div>
+                </div>
+            `;
+            document.getElementById('app-content').innerHTML = html;
+        }
+
+        function renderWallet() {
+            document.getElementById('app-content').innerHTML = `
+                <h2 class="font-bold text-xl mb-4">Assets</h2>
+                <div class="card flex justify-between items-center mb-2"><div><div class="font-bold">🇳🇬 NGN</div></div><div class="font-bold">₦${state.wallets.NGN.toLocaleString()}</div></div>
+                <div class="card flex justify-between items-center mb-2"><div><div class="font-bold">🇺🇸 USDC</div></div><div class="font-bold">$${state.wallets.USDC.toFixed(2)}</div></div>
+                <div class="card flex justify-between items-center"><div><div class="font-bold text-gold">💰 Savings</div></div><div class="font-bold">₦${state.savings.balance.toLocaleString()}</div></div>
+            `;
+        }
+
+        function renderPay() { document.getElementById('app-content').innerHTML = `<h2 class="font-bold text-xl mb-4">Pay</h2><div class="card text-center p-4" onclick="document.getElementById('scanner-modal').style.display='flex'">Scan QR 📷</div>`; }
+        function renderSend() { document.getElementById('app-content').innerHTML = `<h2 class="font-bold text-xl mb-4">Send</h2><div class="card"><div class="input-group"><label>Amount (NGN)</label><input type="number" id="s-amt" class="input-field"></div><button class="btn btn-primary" onclick="doSend()">Send</button></div>`; }
+
+        // --- ACTIONS ---
+        function openSaveModal() {
+            document.getElementById('save-bal').textContent = `₦${state.wallets.NGN.toLocaleString()}`;
+            document.getElementById('savings-topup-modal').style.display = 'flex';
+        }
+        function processSave() {
+            const amt = parseFloat(document.getElementById('save-amt').value);
+            if(!amt || amt > state.wallets.NGN) return alert("Insufficient NGN");
+            state.wallets.NGN -= amt;
+            state.savings.balance += amt;
+            addTx("Savings", "Locked Funds", `-₦${amt.toLocaleString()}`);
+            document.getElementById('savings-topup-modal').style.display = 'none';
+            showReceipt("Funds Locked!");
+        }
+        function openRef() { document.getElementById('referral-modal').style.display = 'flex'; }
+        function openRecv() { document.getElementById('receive-modal').style.display = 'flex'; }
+        function openNotifs() { document.getElementById('notif-modal').style.display = 'flex'; }
+        function openProfile() { document.getElementById('profile-modal').style.display = 'flex'; }
         
-        // --- PROCESSING ---
-        function addTx(t,d,a) { state.history.unshift({type:t, desc:d, amount:a, date:'Now'}); saveState(); }
-        function processSend() { const amt=parseFloat(document.getElementById('s-amt').value); if(!amt) return alert("Invalid"); const tot=amt*1.01; if(tot>state.wallets.USDC && sendMode!=='bank') return alert("Low Funds"); if(tot>state.wallets.NGN && sendMode==='bank') return alert("Low Funds"); if(sendMode==='bank'){state.wallets.NGN-=tot; addTx('Transfer','To Bank',`-₦${amt}`);}else{state.wallets.USDC-=tot; addTx('Sent','To User',`-$${amt}`);} showReceipt("Sent!"); }
-        function processSwap() { const amt=parseFloat(document.getElementById('swapAmt').value); if(!amt||amt>state.wallets.NGN) return alert("Invalid"); const recv=(amt*0.99)/state.rates.USDC_NGN; state.wallets.NGN-=amt; state.wallets.USDC+=recv; addTx('Swap','NGN-USDC',`+${recv.toFixed(2)} USDC`); showReceipt("Swapped!"); }
-        function calcSwap(){ const v=parseFloat(document.getElementById('swapAmt').value); if(v) document.getElementById('swapOut').value=((v*0.99)/state.rates.USDC_NGN).toFixed(2); }
-        function processBill(){ const a=parseFloat(document.getElementById('bill-amt').value); if(!a||a>state.wallets.NGN)return alert("Low Funds"); state.wallets.NGN-=a; addTx('Bill',activeBill,`-₦${a}`); document.getElementById('bill-modal').style.display='none'; showReceipt("Paid!"); }
-        function processDeposit(){ const a=parseFloat(document.getElementById('dep-amt').value); if(!a)return; state.wallets.NGN+=a; addTx('Deposit','Card',`+₦${a}`); document.getElementById('deposit-modal').style.display='none'; showReceipt("Funded!"); }
+        function doSend() {
+            const amt = parseFloat(document.getElementById('s-amt').value);
+            if(!amt || amt > state.wallets.NGN) return alert("Low Funds");
+            state.wallets.NGN -= amt;
+            addTx("Transfer", "Sent Money", `-₦${amt.toLocaleString()}`);
+            showReceipt("Sent!");
+        }
 
+        function addTx(t, d, a) { state.history.unshift({type:t, desc:d, amt:a}); save(); }
         function showReceipt(m) { document.getElementById('receipt-msg').textContent=m; document.getElementById('receipt-modal').style.display='flex'; }
         function closeReceipt() { document.getElementById('receipt-modal').style.display='none'; router('home'); }
-        function openTxDetail(i) { const t=state.history[i]; document.getElementById('tx-type').textContent=t.type; document.getElementById('tx-amt').textContent=t.amount; document.getElementById('tx-desc').textContent=t.desc; document.getElementById('tx-date').textContent=t.date; document.getElementById('tx-detail-modal').style.display='flex'; }
-        function closeProfile() { document.getElementById('profile-modal').style.display='none'; }
-        function openProfile() { document.getElementById('profile-modal').style.display='flex'; }
-        function toggleDark() { state.darkMode=!state.darkMode; document.body.classList.toggle('dark-mode'); saveState(); }
-        function openBill(t) { activeBill=t; document.getElementById('bill-modal').style.display='flex'; }
-        function resetApp() { if(confirm("Reset?")) { localStorage.removeItem('cryptopayState_v10'); localStorage.removeItem('cryptopay_onboarded'); location.reload(); } }
 
         setTimeout(() => router('home'), 100);
     </script>
