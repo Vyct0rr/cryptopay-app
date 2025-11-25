@@ -134,4 +134,194 @@
     </div>
 
     <div id="notif-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'"><div class="modal-sheet"><h2 class="font-bold text-xl mb-4">Notifications</h2><div class="card p-3 mb-2">👋 Welcome to CryptoPay!</div><button class="btn btn-outline" onclick="this.parentElement.parentElement.style.display='none'">Close</button></div></div>
-    <div id="receive-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'"><div class="modal-sheet"><h2 class="font-bold text-center">Receive</h2><div class="card text-center p-4"><img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=JohnDoe" style="width:150px"><p class="font-bold mt-2">@johndoe
+    <div id="receive-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'"><div class="modal-sheet"><h2 class="font-bold text-center">Receive</h2><div class="card text-center p-4"><img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=JohnDoe" style="width:150px"><p class="font-bold mt-2">@johndoe</p></div></div></div>
+    <div id="scanner-modal" class="modal-overlay" style="background:black;"><div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:white;">Scanning...<button class="btn btn-outline" style="position:absolute;bottom:50px;color:white;border-color:white" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
+    <div id="receipt-modal" class="modal-overlay" style="align-items:center;"><div class="modal-sheet text-center"><div style="font-size:4rem">✅</div><h2 class="font-bold text-xl">Success!</h2><p id="receipt-msg" class="text-gray mt-4"></p><button class="btn btn-primary mt-4" onclick="closeReceipt()">Done</button></div></div>
+    <div id="profile-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'"><div class="modal-sheet"><h2 class="font-bold">John Doe</h2><button class="btn btn-outline mt-4" onclick="localStorage.clear();location.reload()">Reset App</button></div></div>
+
+    <script>
+        // --- APP STARTUP ---
+        window.onload = function() {
+            setTimeout(() => {
+                document.getElementById('splash-screen').style.opacity = '0';
+                setTimeout(() => { document.getElementById('splash-screen').style.display = 'none'; checkAuth(); }, 500);
+            }, 2000);
+        };
+        function checkAuth() {
+            if(!localStorage.getItem('cp_onboard')) document.getElementById('onboarding-screen').style.display='flex';
+            else document.getElementById('login-screen').style.display='flex';
+        }
+        function finishOnboard() { localStorage.setItem('cp_onboard','true'); document.getElementById('onboarding-screen').style.display='none'; document.getElementById('login-screen').style.display='flex'; }
+
+        // --- AUTH ---
+        let pin=""; function pressKey(n){ if(pin.length<4){pin+=n;upUI();} if(pin.length===4)setTimeout(()=>{if(pin==="1234"){document.getElementById('login-screen').style.display='none';document.getElementById('app-container').style.display='block';}else{alert("PIN: 1234");pin="";upUI();}},100); }
+        function clearPin(){pin=pin.slice(0,-1);upUI();} function upUI(){for(let i=1;i<=4;i++)document.getElementById('p'+i).className=i<=pin.length?"pin-dot filled":"pin-dot";}
+
+        // --- STATE ---
+        const defState = { wallets: {NGN:25000, USDC:100}, savings: {balance:0, profit:0}, rates:{USDC_NGN:1450}, history:[] };
+        let state = JSON.parse(JSON.stringify(defState));
+        try{const s=localStorage.getItem('cp_state_v12'); if(s)state=JSON.parse(s);}catch(e){}
+        function save(){localStorage.setItem('cp_state_v12',JSON.stringify(state));}
+
+        // --- ROUTER ---
+        function router(s) {
+            document.getElementById('app-content').innerHTML = '';
+            
+            // Back Button Logic
+            if(s === 'home') document.getElementById('back-btn').classList.add('hidden');
+            else document.getElementById('back-btn').classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+            const nav = document.querySelector(`.nav-item[onclick="router('${s}')"]`);
+            if(nav) nav.classList.add('active');
+
+            if(s==='home') renderHome(); else if(s==='pay') renderPay(); else if(s==='send') renderSend('internal'); else if(s==='savings') renderSavings(); else if(s==='wallet') renderWallet();
+        }
+
+        // --- RENDERERS ---
+        function renderHome() {
+            const tot = state.wallets.USDC + (state.wallets.NGN/state.rates.USDC_NGN) + (state.savings.balance/state.rates.USDC_NGN);
+            const html = `
+                <div class="balance-card">
+                    <div class="text-sm" style="opacity:0.9">Total Net Worth</div>
+                    <div class="balance-amount">$${tot.toFixed(2)}</div>
+                    <div class="text-sm">≈ ₦${((tot*state.rates.USDC_NGN)).toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+                </div>
+                <div class="text-center text-xs text-gray mb-4" style="background:#fff; padding:5px; border-radius:20px; width:fit-content; margin: -15px auto 20px auto; border:1px solid #eee">
+                    Rate: 1 USD = ₦${state.rates.USDC_NGN.toLocaleString()}
+                </div>
+                <div class="action-grid">
+                    <a class="action-btn" onclick="router('send')"><span style="font-size:1.5rem">📤</span><span class="font-bold text-sm">Send</span></a>
+                    <a class="action-btn" onclick="openRecv()"><span style="font-size:1.5rem">📥</span><span class="font-bold text-sm">Receive</span></a>
+                    <a class="action-btn" onclick="openRef()"><span style="font-size:1.5rem">🎁</span><span class="font-bold text-sm">Invite</span></a>
+                </div>
+                <h3 class="font-bold mb-2">Recent Activity</h3>
+                ${state.history.length ? state.history.map(t=>`<div class="recent-tx-item"><div><div class="font-bold">${t.type}</div><div class="text-xs text-gray">${t.desc}</div></div><div class="font-bold ${t.amt.includes('-')?'text-danger':'text-success'}">${t.amt}</div></div>`).join('') : '<div class="text-center text-gray p-4">No activity yet</div>'}
+            `;
+            document.getElementById('app-content').innerHTML = html;
+        }
+
+        function renderSend(mode) {
+            let formHtml = '';
+            
+            // TABS
+            const tabs = `
+                <div class="tab-group">
+                    <div class="tab-btn ${mode==='internal'?'active':''}" onclick="renderSend('internal')">Internal</div>
+                    <div class="tab-btn ${mode==='crypto'?'active':''}" onclick="renderSend('crypto')">Crypto (Ext)</div>
+                    <div class="tab-btn ${mode==='bank'?'active':''}" onclick="renderSend('bank')">Bank</div>
+                </div>
+            `;
+
+            // FORMS
+            if(mode === 'internal') {
+                formHtml = `
+                    <div class="card">
+                        <p class="text-xs text-success font-bold mb-2">⚡ FREE Transfer</p>
+                        <div class="input-group"><label>Username</label><input type="text" id="int-user" class="input-field" placeholder="@username"></div>
+                        <div class="input-group"><label>Amount (USDC)</label><input type="number" id="int-amt" class="input-field" placeholder="10.00"></div>
+                        <button class="btn btn-primary" onclick="doSendInternal()">Send Free</button>
+                    </div>
+                `;
+            } else if(mode === 'crypto') {
+                formHtml = `
+                    <div class="card">
+                        <div class="input-group"><label>Asset</label><select class="select-field"><option>USDC</option><option>BTC</option><option>USDT</option></select></div>
+                        <div class="input-group"><label>Wallet Address</label><input type="text" id="ext-addr" class="input-field" placeholder="0x... or bc1..."></div>
+                        <div class="input-group"><label>Amount</label><input type="number" id="ext-amt" class="input-field" placeholder="0.00"></div>
+                        <div class="flex justify-between text-xs text-gray mt-2"><span>Network Fee:</span><span>$1.00</span></div>
+                        <button class="btn btn-primary mt-4" onclick="doSendCrypto()">Send Crypto</button>
+                    </div>
+                `;
+            } else if(mode === 'bank') {
+                formHtml = `
+                    <div class="card">
+                        <div class="input-group"><label>Bank</label><select class="select-field"><option>GTBank</option><option>UBA</option><option>Access</option><option>OPay</option></select></div>
+                        <div class="input-group"><label>Account Number</label><input type="tel" id="bank-acct" class="input-field" placeholder="10 Digits" oninput="checkName()"></div>
+                        <div id="bank-name-display" class="text-success text-sm font-bold mb-3 hidden">✓ Emeka Johnson</div>
+                        <div class="input-group"><label>Amount (NGN)</label><input type="number" id="bank-amt" class="input-field" placeholder="5000"></div>
+                         <div class="flex justify-between text-xs text-gray mt-2"><span>Bank Fee:</span><span>₦50.00</span></div>
+                        <button class="btn btn-primary mt-4" onclick="doSendBank()">Transfer to Bank</button>
+                    </div>
+                `;
+            }
+
+            document.getElementById('app-content').innerHTML = `<h2 class="font-bold text-xl mb-4">Send</h2>` + tabs + formHtml;
+        }
+
+        // --- ACTIONS ---
+        function checkName() {
+            const val = document.getElementById('bank-acct').value;
+            if(val.length === 10) {
+                document.getElementById('bank-name-display').classList.remove('hidden');
+            } else {
+                document.getElementById('bank-name-display').classList.add('hidden');
+            }
+        }
+
+        function doSendInternal() {
+            const amt = parseFloat(document.getElementById('int-amt').value);
+            const user = document.getElementById('int-user').value;
+            if(!amt || !user) return alert("Invalid details");
+            if(amt > state.wallets.USDC) return alert("Insufficient USDC");
+            state.wallets.USDC -= amt;
+            addTx("Internal", `Sent to ${user}`, `-$${amt.toFixed(2)}`);
+            showReceipt(`Sent $${amt} to ${user} (Free)`);
+        }
+
+        function doSendCrypto() {
+            const amt = parseFloat(document.getElementById('ext-amt').value);
+            const addr = document.getElementById('ext-addr').value;
+            if(!amt || !addr) return alert("Invalid details");
+            const total = amt + 1; // $1 fee
+            if(total > state.wallets.USDC) return alert(`Insufficient Balance (Need $${total})`);
+            state.wallets.USDC -= total;
+            addTx("Crypto Out", `To ${addr.substr(0,6)}...`, `-$${amt.toFixed(2)}`);
+            showReceipt(`Sent $${amt} (+ $1 Fee)`);
+        }
+
+        function doSendBank() {
+            const amt = parseFloat(document.getElementById('bank-amt').value);
+            if(!amt) return alert("Invalid Amount");
+            const total = amt + 50; // N50 fee
+            if(total > state.wallets.NGN) return alert(`Insufficient NGN (Need ₦${total})`);
+            state.wallets.NGN -= total;
+            addTx("Bank Transfer", "To Emeka Johnson", `-₦${amt.toLocaleString()}`);
+            showReceipt(`Sent ₦${amt.toLocaleString()} (+ ₦50 Fee)`);
+        }
+
+        function renderSavings() {
+            document.getElementById('app-content').innerHTML = `
+                <h2 class="font-bold text-xl mb-4">Earn Yield</h2>
+                <div class="card savings-card text-center p-4">
+                    <div class="text-sm" style="opacity:0.9">Savings Vault</div>
+                    <div class="font-bold" style="font-size:2rem">₦${state.savings.balance.toLocaleString()}</div>
+                    <div class="text-xs mt-1">+ ₦${state.savings.profit.toLocaleString()} Profit Earned</div>
+                </div>
+                <button class="btn btn-primary" onclick="openSaveModal()">Add Funds</button>
+            `;
+        }
+        function renderWallet() {
+            document.getElementById('app-content').innerHTML = `
+                <h2 class="font-bold text-xl mb-4">Assets</h2>
+                <div class="card flex justify-between items-center mb-2"><div><div class="font-bold">🇳🇬 NGN</div></div><div class="font-bold">₦${state.wallets.NGN.toLocaleString()}</div></div>
+                <div class="card flex justify-between items-center mb-2"><div><div class="font-bold">🇺🇸 USDC</div></div><div class="font-bold">$${state.wallets.USDC.toFixed(2)}</div></div>
+            `;
+        }
+        function renderPay() { document.getElementById('app-content').innerHTML = `<h2 class="font-bold text-xl mb-4">Pay</h2><div class="card text-center p-4" onclick="document.getElementById('scanner-modal').style.display='flex'">Scan QR 📷</div>`; }
+
+        // UTILS
+        function openSaveModal() { document.getElementById('save-bal').textContent = `₦${state.wallets.NGN.toLocaleString()}`; document.getElementById('savings-topup-modal').style.display = 'flex'; }
+        function processSave() { const amt = parseFloat(document.getElementById('save-amt').value); if(!amt || amt > state.wallets.NGN) return alert("Insufficient NGN"); state.wallets.NGN -= amt; state.savings.balance += amt; addTx("Savings", "Locked Funds", `-₦${amt.toLocaleString()}`); document.getElementById('savings-topup-modal').style.display = 'none'; showReceipt("Funds Locked!"); }
+        function openRef() { document.getElementById('referral-modal').style.display = 'flex'; }
+        function openRecv() { document.getElementById('receive-modal').style.display = 'flex'; }
+        function openNotifs() { document.getElementById('notif-modal').style.display = 'flex'; }
+        function openProfile() { document.getElementById('profile-modal').style.display = 'flex'; }
+        function addTx(t, d, a) { state.history.unshift({type:t, desc:d, amt:a}); save(); }
+        function showReceipt(m) { document.getElementById('receipt-msg').textContent=m; document.getElementById('receipt-modal').style.display='flex'; }
+        function closeReceipt() { document.getElementById('receipt-modal').style.display='none'; router('home'); }
+
+        setTimeout(() => router('home'), 100);
+    </script>
+</body>
+</html>
