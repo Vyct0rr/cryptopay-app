@@ -16,15 +16,13 @@
             --danger: #EF4444;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text-dark); padding-bottom: 80px; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text-dark); padding-bottom: 90px; }
         
         /* UTILITIES */
         .flex { display: flex; }
-        .flex-col { flex-direction: column; }
         .justify-between { justify-content: space-between; }
         .items-center { align-items: center; }
         .p-4 { padding: 16px; }
-        .mt-4 { margin-top: 16px; }
         .mb-4 { margin-bottom: 16px; }
         .text-center { text-align: center; }
         .font-bold { font-weight: 700; }
@@ -58,9 +56,9 @@
         /* HOME SPECIFIC */
         .balance-card { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; text-align: center; padding: 35px 20px; border-radius: 24px; margin-bottom: 25px; }
         .balance-amount { font-size: 2.5rem; font-weight: 800; margin: 10px 0; }
-        .recent-tx-item { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #F3F4F6; }
         .action-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 25px; }
         .action-btn { background: var(--white); padding: 16px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-decoration: none; color: var(--text-dark); }
+        .recent-tx-item { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #F3F4F6; }
 
         /* PAY GRID */
         .pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
@@ -80,7 +78,13 @@
 </head>
 <body>
 
-    <header>
+    <div id="loading-msg" style="padding: 40px; text-align: center; color: var(--text-gray);">
+        <h2>⚠️ Initializing...</h2>
+        <p>If this stays for more than 5 seconds, the code may be incomplete.</p>
+        <button onclick="localStorage.clear(); location.reload()" style="margin-top:20px; padding:10px; background:#eee; border:none; border-radius:8px;">Force Reset Data</button>
+    </div>
+
+    <header id="main-header" style="display:none">
         <div class="font-bold text-xl">CryptoPay</div>
         <div onclick="resetApp()" style="width:35px; height:35px; background:#E0E7FF; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--primary); font-weight:bold;">JD</div>
     </header>
@@ -130,7 +134,7 @@
         </div>
     </div>
 
-    <nav class="bottom-nav">
+    <nav id="main-nav" class="bottom-nav" style="display:none">
         <a href="#" class="nav-item active" onclick="router('home')"><span class="nav-icon">🏠</span>Home</a>
         <a href="#" class="nav-item" onclick="router('pay')"><span class="nav-icon">📱</span>Pay</a>
         <a href="#" class="nav-item" onclick="router('send')"><span class="nav-icon">💸</span>Send</a>
@@ -139,6 +143,11 @@
     </nav>
 
     <script>
+        // --- SAFEGUARD: SHOW UI ---
+        document.getElementById('loading-msg').style.display = 'none';
+        document.getElementById('main-header').style.display = 'flex';
+        document.getElementById('main-nav').style.display = 'flex';
+
         // --- DATA & STATE ---
         const defaultState = {
             wallets: { NGN: 25000.00, USDC: 100.00 },
@@ -152,39 +161,52 @@
         let sendMode = 'wallet'; 
         let activeBillType = '';
 
-        // Load State
+        // Load State Safely
         try {
-            const saved = localStorage.getItem('cryptopayState_v4');
-            if(saved) state = JSON.parse(saved);
-        } catch(e) {}
+            const saved = localStorage.getItem('cryptopayState_v5');
+            if(saved) {
+                const parsed = JSON.parse(saved);
+                // Basic integrity check
+                if(parsed.wallets && typeof parsed.wallets.NGN === 'number') {
+                    state = parsed;
+                }
+            }
+        } catch(e) {
+            console.log("State reset due to error");
+        }
 
         function saveState() {
-            localStorage.setItem('cryptopayState_v4', JSON.stringify(state));
+            localStorage.setItem('cryptopayState_v5', JSON.stringify(state));
         }
 
         // --- ROUTER ---
         function router(screen) {
-            const app = document.getElementById('app-content');
-            
-            // Nav Highlighting
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            const activeNav = document.querySelector(`.nav-item[onclick="router('${screen}')"]`);
-            if(activeNav) activeNav.classList.add('active');
+            try {
+                const app = document.getElementById('app-content');
+                if(!app) return;
+                
+                // Nav Styles
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                const activeNav = document.querySelector(`.nav-item[onclick="router('${screen}')"]`);
+                if(activeNav) activeNav.classList.add('active');
 
-            // Render
-            if (screen === 'home') renderHome(app);
-            else if (screen === 'pay') renderPay(app);
-            else if (screen === 'send') renderSend(app);
-            else if (screen === 'swap') renderSwap(app);
-            else if (screen === 'wallet') renderWallet(app);
+                // Render
+                if (screen === 'home') renderHome(app);
+                else if (screen === 'pay') renderPay(app);
+                else if (screen === 'send') renderSend(app);
+                else if (screen === 'swap') renderSwap(app);
+                else if (screen === 'wallet') renderWallet(app);
+
+            } catch(e) {
+                alert("Screen Error: " + e.message);
+            }
         }
 
         // --- SCREENS ---
-
         function renderHome(container) {
-            const usdc = state.wallets.USDC;
-            const ngn = state.wallets.NGN;
-            const rate = state.rates.USDC_NGN;
+            const usdc = state.wallets.USDC || 0;
+            const ngn = state.wallets.NGN || 0;
+            const rate = state.rates.USDC_NGN || 1500;
             const totalUSD = usdc + (ngn / rate);
             const totalNGN = (usdc * rate) + ngn;
             
@@ -208,7 +230,7 @@
                 </div>
 
                 <h3 class="font-bold mb-2">Recent Activity</h3>
-                ${state.history.map(tx => `
+                ${(state.history || []).map(tx => `
                     <div class="recent-tx-item">
                         <div>
                             <div class="font-bold">${tx.type}</div>
@@ -234,20 +256,16 @@
                 <h3 class="font-bold mt-4">Utilities</h3>
                 <div class="pay-grid">
                     <div class="pay-item" onclick="openBillModal('Airtime')">
-                        <span class="pay-icon">📱</span>
-                        <div class="font-bold text-sm">Airtime</div>
+                        <span class="pay-icon">📱</span><div class="font-bold text-sm">Airtime</div>
                     </div>
                     <div class="pay-item" onclick="openBillModal('Data')">
-                        <span class="pay-icon">📶</span>
-                        <div class="font-bold text-sm">Data Bundle</div>
+                        <span class="pay-icon">📶</span><div class="font-bold text-sm">Data Bundle</div>
                     </div>
                     <div class="pay-item" onclick="openBillModal('Electricity')">
-                        <span class="pay-icon">💡</span>
-                        <div class="font-bold text-sm">Electricity</div>
+                        <span class="pay-icon">💡</span><div class="font-bold text-sm">Electricity</div>
                     </div>
                     <div class="pay-item" onclick="openBillModal('TV')">
-                        <span class="pay-icon">📺</span>
-                        <div class="font-bold text-sm">Cable TV</div>
+                        <span class="pay-icon">📺</span><div class="font-bold text-sm">Cable TV</div>
                     </div>
                 </div>
             `;
@@ -335,8 +353,6 @@
         }
 
         // --- LOGIC: BILLS & DEPOSIT ---
-
-        // Deposit Logic
         function openDepositModal() {
             document.getElementById('deposit-modal').style.display = 'flex';
         }
@@ -354,7 +370,6 @@
             showReceipt(`Funded ₦${amt.toLocaleString()}`);
         }
 
-        // Bills Logic
         function openBillModal(type) {
             activeBillType = type;
             document.getElementById('bill-title').textContent = `Pay ${type}`;
@@ -379,8 +394,54 @@
             showReceipt(`Paid ₦${amt} for ${activeBillType}`);
         }
 
-        // --- OLD LOGIC (Send/Swap) ---
+        // --- OLD LOGIC ---
         function setSendMode(mode) { sendMode = mode; router('send'); }
         function calcSwap() {
             const val = parseFloat(document.getElementById('swapAmt').value);
-            if(val) document.getElementBy
+            if(val) document.getElementById('swapOut').value = (val / state.rates.USDC_NGN).toFixed(2);
+        }
+        function processSwap() {
+            const amt = parseFloat(document.getElementById('swapAmt').value);
+            if(!amt || amt > state.wallets.NGN) return alert("Invalid Amount");
+            const recv = amt / state.rates.USDC_NGN;
+            state.wallets.NGN -= amt;
+            state.wallets.USDC += recv;
+            state.history.unshift({ type: 'Swap', desc: 'NGN to USDC', amount: `+${recv.toFixed(2)} USDC`, date: 'Just Now' });
+            saveState();
+            showReceipt(`Swapped ₦${amt} to $${recv.toFixed(2)}`);
+        }
+        function processSend() {
+            const amt = parseFloat(document.getElementById('sendAmount').value);
+            if(!amt) return alert("Enter valid amount");
+            if(sendMode === 'bank') {
+                if(amt > state.wallets.NGN) return alert("Insufficient Funds");
+                state.wallets.NGN -= amt;
+                state.history.unshift({ type: 'Transfer', desc: 'To Bank', amount: `-₦${amt.toLocaleString()}`, date: 'Just Now' });
+                showReceipt(`Sent ₦${amt} to Bank`);
+            } else {
+                if(amt > state.wallets.USDC) return alert("Insufficient Funds");
+                state.wallets.USDC -= amt;
+                state.history.unshift({ type: 'Sent', desc: 'To User', amount: `-$${amt}`, date: 'Just Now' });
+                showReceipt(`Sent $${amt} to User`);
+            }
+            saveState();
+        }
+
+        function showReceipt(msg) {
+            document.getElementById('receipt-msg').textContent = msg;
+            document.getElementById('receipt-modal').style.display = 'flex';
+        }
+        function closeReceipt() {
+            document.getElementById('receipt-modal').style.display = 'none';
+            router('home');
+        }
+        function resetApp() {
+            if(confirm("Reset all data?")) { localStorage.removeItem('cryptopayState_v5'); location.reload(); }
+        }
+
+        // Init
+        setTimeout(() => router('home'), 100);
+
+    </script>
+</body>
+</html>
