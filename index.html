@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CryptoPay</title>
     <style>
-        /* CORE STYLES & VARIABLES */
+        /* CORE STYLES */
         :root {
             --primary: #4F46E5;
             --bg: #F3F4F6;
@@ -14,7 +14,6 @@
             --text-gray: #6B7280;
             --success: #10B981;
         }
-        
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text-dark); padding-bottom: 80px; }
         
@@ -22,7 +21,6 @@
         .hidden { display: none !important; }
         .flex { display: flex; }
         .justify-between { justify-content: space-between; }
-        .items-center { align-items: center; }
         .p-4 { padding: 16px; }
         .mt-4 { margin-top: 16px; }
         .text-center { text-align: center; }
@@ -30,63 +28,64 @@
         .text-xl { font-size: 1.25rem; }
         .text-sm { font-size: 0.875rem; }
         .text-gray { color: var(--text-gray); }
-        .text-primary { color: var(--primary); }
+        .text-success { color: var(--success); }
         
         /* COMPONENTS */
         .card { background: var(--white); border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 15px; }
         
-        .btn { border: none; padding: 14px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; font-size: 1rem; margin-top: 10px; }
+        .btn { border: none; padding: 14px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; font-size: 1rem; margin-top: 10px; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-outline { border: 1px solid #E5E7EB; background: white; color: var(--text-dark); }
+        .btn-outline { border: 1px solid #E5E7EB; background: white; color: var(--text-gray); }
+        .btn-outline.active { border-color: var(--primary); color: var(--primary); background: #E0E7FF; }
         
         .input-group { margin-bottom: 15px; text-align: left; }
         .input-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-gray); }
         .input-field { width: 100%; padding: 14px; border: 1px solid #E5E7EB; border-radius: 12px; font-size: 1rem; outline: none; background: #F9FAFB; }
-        .input-field:focus { border-color: var(--primary); background: #fff; }
+        .select-field { width: 100%; padding: 14px; border: 1px solid #E5E7EB; border-radius: 12px; font-size: 1rem; background: #fff; }
 
-        /* HEADER */
-        header { background: var(--white); padding: 15px 20px; position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E5E7EB; }
-        .user-avatar { width: 35px; height: 35px; background: #E0E7FF; color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-
-        /* BOTTOM NAV */
+        /* NAV & HEADER */
+        header { background: var(--white); padding: 15px 20px; position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; border-bottom: 1px solid #E5E7EB; }
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--white); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #E5E7EB; z-index: 20; }
         .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; color: #9CA3AF; text-decoration: none; }
         .nav-item.active { color: var(--primary); }
         .nav-icon { font-size: 1.4rem; margin-bottom: 4px; }
 
         /* HOME SPECIFIC */
-        .balance-card { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; text-align: center; padding: 35px 20px; border-radius: 24px; margin-bottom: 25px; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3); }
-        .balance-amount { font-size: 2.5rem; font-weight: 800; margin: 10px 0; letter-spacing: -1px; }
-        
+        .balance-card { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; text-align: center; padding: 35px 20px; border-radius: 24px; margin-bottom: 25px; }
+        .balance-amount { font-size: 2.5rem; font-weight: 800; margin: 10px 0; }
         .action-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 25px; }
         .action-btn { background: var(--white); padding: 16px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-decoration: none; color: var(--text-dark); }
-        
-        .recent-tx-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #F3F4F6; }
+        .recent-tx-item { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #F3F4F6; }
 
-        /* TOAST */
-        #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 50px; padding: 16px; position: fixed; z-index: 50; left: 50%; transform: translateX(-50%); bottom: 90px; font-size: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
-        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 90px; opacity: 1;} }
-        @keyframes fadeout { from {bottom: 90px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+        /* RECEIPT MODAL */
+        #receipt-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: none; justify-content: center; align-items: center; }
+        .receipt-content { background: white; width: 85%; padding: 30px; border-radius: 20px; text-align: center; animation: popUp 0.3s ease; }
+        @keyframes popUp { from {transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;} }
     </style>
 </head>
 <body>
 
     <script>
-        window.onerror = function(message, source, lineno, colno, error) {
-            alert("App Error: " + message);
-        };
+        // Error trap
+        window.onerror = function(msg) { alert("Error: " + msg); };
     </script>
 
     <header>
         <div class="font-bold text-xl">CryptoPay</div>
-        <div class="user-avatar" onclick="resetApp()">JD</div>
+        <div style="width:35px; height:35px; background:#E0E7FF; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--primary); font-weight:bold;">JD</div>
     </header>
 
     <main id="app-content" class="p-4">
         </main>
 
-    <div id="toast">Notification</div>
+    <div id="receipt-modal">
+        <div class="receipt-content">
+            <div style="font-size: 4rem; margin-bottom: 10px">✅</div>
+            <h2 class="font-bold text-xl">Success!</h2>
+            <p id="receipt-msg" class="text-gray mt-4">Transaction Completed</p>
+            <button class="btn btn-primary mt-4" onclick="closeReceipt()">Done</button>
+        </div>
+    </div>
 
     <nav class="bottom-nav">
         <a href="#" class="nav-item active" onclick="router('home')"><span class="nav-icon">🏠</span>Home</a>
@@ -97,121 +96,130 @@
     </nav>
 
     <script>
-        // DEFAULT STATE
+        // --- DATA & STATE ---
         const defaultState = {
-            wallets: { NGN: 12500.00, USDC: 26.00, USDT: 10.00 },
-            rates: { USDC_NGN: 1500 },
+            wallets: { NGN: 55000.00, USDC: 150.00 },
+            rates: { USDC_NGN: 1500 }, // 1 USDC = 1500 NGN
             history: [
-                { type: 'Sent', to: '@alice', amount: '-$5.00', date: 'Today, 10:23 AM' },
-                { type: 'Received', from: 'Bank', amount: '+₦50,000', date: 'Nov 20' }
+                { type: 'Deposit', desc: 'From Bank', amount: '+₦50,000', date: 'Nov 20' }
             ]
         };
 
-        let state = JSON.parse(JSON.stringify(defaultState)); // Deep copy
+        let state = JSON.parse(JSON.stringify(defaultState));
+        let sendMode = 'wallet'; // 'wallet' or 'bank'
 
-        // SAFE LOAD
+        // Load State
         try {
-            const saved = localStorage.getItem('cryptopayState');
-            if(saved) {
-                const parsed = JSON.parse(saved);
-                if(parsed && parsed.wallets) {
-                    state = parsed;
-                }
-            }
-        } catch(e) {
-            console.log("Storage error, using default");
-        }
+            const saved = localStorage.getItem('cryptopayState_v2');
+            if(saved) state = JSON.parse(saved);
+        } catch(e) {}
 
         function saveState() {
-            try { localStorage.setItem('cryptopayState', JSON.stringify(state)); } catch(e) {}
+            localStorage.setItem('cryptopayState_v2', JSON.stringify(state));
         }
 
-        function resetApp() {
-            if(confirm("Reset App Data?")) {
-                localStorage.removeItem('cryptopayState');
-                location.reload();
-            }
-        }
-
-        // ROUTER
+        // --- ROUTER ---
         function router(screen) {
-            try {
-                const app = document.getElementById('app-content');
-                if(!app) return;
+            const app = document.getElementById('app-content');
+            
+            // Nav Highlighting
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const activeNav = document.querySelector(`.nav-item[onclick="router('${screen}')"]`);
+            if(activeNav) activeNav.classList.add('active');
 
-                // Update Nav
-                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-                const activeNav = document.querySelector(`.nav-item[onclick="router('${screen}')"]`);
-                if(activeNav) activeNav.classList.add('active');
-
-                // Render
-                if (screen === 'home') renderHome(app);
-                else if (screen === 'pay') renderPay(app);
-                else if (screen === 'send') renderSend(app);
-                else if (screen === 'swap') renderSwap(app);
-                else if (screen === 'wallet') renderWallet(app);
-                
-            } catch(e) {
-                alert("Error loading screen: " + e.message);
-            }
+            // Render
+            if (screen === 'home') renderHome(app);
+            else if (screen === 'pay') renderPay(app);
+            else if (screen === 'send') renderSend(app);
+            else if (screen === 'swap') renderSwap(app);
+            else if (screen === 'wallet') renderWallet(app);
         }
 
-        // RENDER FUNCTIONS
-        function renderHome(container) {
-            const usdc = state.wallets.USDC || 0;
-            const ngnVal = usdc * (state.rates.USDC_NGN || 1500);
+        // --- SCREENS ---
 
+        function renderHome(container) {
+            const usdc = state.wallets.USDC;
+            const ngnVal = usdc * state.rates.USDC_NGN;
+            
             container.innerHTML = `
                 <div class="balance-card">
-                    <div class="text-sm" style="opacity: 0.9">Total Balance (Est.)</div>
-                    <div class="balance-amount">$${Number(usdc).toFixed(2)}</div>
-                    <div class="text-sm">≈ ₦${Number(ngnVal).toLocaleString()}</div>
+                    <div class="text-sm" style="opacity: 0.9">Total Balance (USD Eqv)</div>
+                    <div class="balance-amount">$${usdc.toFixed(2)}</div>
+                    <div class="text-sm">≈ ₦${ngnVal.toLocaleString()}</div>
                 </div>
 
                 <div class="action-grid">
                     <a class="action-btn" onclick="router('send')">
-                        <span style="font-size: 1.5rem; margin-bottom: 5px">📤</span>
-                        <span class="text-sm font-bold">Send</span>
+                        <span style="font-size: 1.5rem">📤</span><span class="font-bold text-sm">Send</span>
                     </a>
                     <a class="action-btn" onclick="router('pay')">
-                        <span style="font-size: 1.5rem; margin-bottom: 5px">🧾</span>
-                        <span class="text-sm font-bold">Pay</span>
+                        <span style="font-size: 1.5rem">🧾</span><span class="font-bold text-sm">Pay</span>
                     </a>
                     <a class="action-btn" onclick="router('swap')">
-                        <span style="font-size: 1.5rem; margin-bottom: 5px">🔄</span>
-                        <span class="text-sm font-bold">Swap</span>
+                        <span style="font-size: 1.5rem">🔄</span><span class="font-bold text-sm">Swap</span>
                     </a>
                 </div>
 
-                <div class="flex justify-between items-center mt-4 mb-2">
-                    <h3 class="font-bold">Recent Activity</h3>
-                </div>
+                <h3 class="font-bold mb-2">Recent Activity</h3>
                 ${state.history.map(tx => `
                     <div class="recent-tx-item">
                         <div>
                             <div class="font-bold">${tx.type}</div>
-                            <div class="text-xs text-gray">${tx.date}</div>
+                            <div class="text-xs text-gray">${tx.desc}</div>
                         </div>
-                        <div class="font-bold">${tx.amount}</div>
+                        <div class="font-bold ${tx.amount.includes('+') ? 'text-success' : ''}">${tx.amount}</div>
                     </div>
                 `).join('')}
             `;
         }
 
         function renderSend(container) {
+            // Check which tab is active
+            const isBank = sendMode === 'bank';
+
             container.innerHTML = `
                 <h2 class="font-bold text-xl mb-4">Send Money</h2>
+                
+                <div class="flex mb-4">
+                    <button class="btn btn-outline ${!isBank ? 'active' : ''}" style="margin-right:10px; flex:1" onclick="setSendMode('wallet')">To Wallet</button>
+                    <button class="btn btn-outline ${isBank ? 'active' : ''}" style="flex:1" onclick="setSendMode('bank')">To Bank</button>
+                </div>
+                
                 <div class="card">
-                    <div class="input-group">
-                        <label>Recipient</label>
-                        <input type="text" id="sendTo" class="input-field" placeholder="@username">
-                    </div>
-                    <div class="input-group">
-                        <label>Amount (USDC)</label>
-                        <input type="number" id="sendAmount" class="input-field" placeholder="0.00">
-                        <div class="text-xs text-gray mt-2">Balance: $${state.wallets.USDC.toFixed(2)}</div>
-                    </div>
-                    <button class="btn btn-primary" onclick="processSend()">Confirm Send</button>
+                    ${isBank ? `
+                        <div class="input-group">
+                            <label>Select Bank</label>
+                            <select id="bankName" class="select-field">
+                                <option>GTBank</option>
+                                <option>Access Bank</option>
+                                <option>OPay</option>
+                                <option>Kuda</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Account Number</label>
+                            <input type="number" id="acctNum" class="input-field" placeholder="0123456789">
+                        </div>
+                        <div class="input-group">
+                            <label>Amount (NGN)</label>
+                            <input type="number" id="sendAmount" class="input-field" placeholder="5000">
+                            <div class="text-xs text-gray mt-2">Available: ₦${state.wallets.NGN.toLocaleString()}</div>
+                        </div>
+                    ` : `
+                        <div class="input-group">
+                            <label>Username or Address</label>
+                            <input type="text" id="username" class="input-field" placeholder="@username">
+                        </div>
+                        <div class="input-group">
+                            <label>Amount (USDC)</label>
+                            <input type="number" id="sendAmount" class="input-field" placeholder="10.00">
+                            <div class="text-xs text-gray mt-2">Available: $${state.wallets.USDC.toFixed(2)}</div>
+                        </div>
+                    `}
+                    
+                    <button class="btn btn-primary mt-4" onclick="processSend()">
+                        ${isBank ? 'Send to Bank' : 'Send Crypto'}
+                    </button>
                 </div>
             `;
         }
@@ -222,13 +230,13 @@
                 <div class="card">
                     <div class="input-group">
                         <label>From (NGN)</label>
-                        <input type="number" id="swapAmount" class="input-field" placeholder="0.00" oninput="calcSwap()">
+                        <input type="number" id="swapAmt" class="input-field" placeholder="0.00" oninput="calcSwap()">
                         <div class="text-xs text-gray mt-1">Bal: ₦${state.wallets.NGN.toLocaleString()}</div>
                     </div>
                     <div class="text-center my-2">⬇️</div>
                     <div class="input-group">
                         <label>To (USDC)</label>
-                        <input type="text" id="swapReceive" class="input-field" disabled placeholder="0.00">
+                        <input type="text" id="swapOut" class="input-field" disabled placeholder="0.00">
                     </div>
                     <button class="btn btn-primary" onclick="processSwap()">Swap Now</button>
                 </div>
@@ -238,73 +246,86 @@
         function renderWallet(container) {
             container.innerHTML = `
                 <h2 class="font-bold text-xl mb-4">My Assets</h2>
-                ${Object.keys(state.wallets).map(coin => `
-                    <div class="card flex justify-between items-center">
-                        <div class="font-bold text-xl">${coin}</div>
-                        <div class="font-bold text-xl">${state.wallets[coin].toLocaleString()}</div>
-                    </div>
-                `).join('')}
-            `;
-        }
-
-        function renderPay(container) {
-            container.innerHTML = `
-                <h2 class="font-bold text-xl mb-4">Pay Bills</h2>
-                <div class="card text-center p-4">
-                    <div style="font-size: 3rem; margin-bottom: 10px">📷</div>
-                    <p>Scan QR Code</p>
+                <div class="card flex justify-between items-center mb-3">
+                    <div class="font-bold text-xl">🇳🇬 NGN</div>
+                    <div class="font-bold text-xl">₦${state.wallets.NGN.toLocaleString()}</div>
                 </div>
-                <div class="action-grid">
-                    <div class="action-btn">💡 Elec</div>
-                    <div class="action-btn">📶 Data</div>
-                    <div class="action-btn">📺 TV</div>
+                <div class="card flex justify-between items-center">
+                    <div class="font-bold text-xl">🇺🇸 USDC</div>
+                    <div class="font-bold text-xl">$${state.wallets.USDC.toFixed(2)}</div>
                 </div>
             `;
         }
+        
+        function renderPay(c) {
+             c.innerHTML = `<div class="card text-center"><h2 class="mb-4">Scan QR</h2><div style="font-size:4rem">📷</div></div>`; 
+        }
 
-        // LOGIC
+        // --- LOGIC ---
+
+        function setSendMode(mode) {
+            sendMode = mode;
+            router('send'); // re-render
+        }
+
         function processSend() {
-            const to = document.getElementById('sendTo').value;
-            const amount = parseFloat(document.getElementById('sendAmount').value);
-            if (!to || !amount) return showToast("Enter details");
-            if (amount > state.wallets.USDC) return showToast("Low Balance");
+            const amt = parseFloat(document.getElementById('sendAmount').value);
+            if(!amt || amt <= 0) return alert("Enter valid amount");
 
-            state.wallets.USDC -= amount;
-            state.history.unshift({ type: 'Sent', to: to, amount: `-$${amount}`, date: 'Just Now' });
+            if(sendMode === 'bank') {
+                if(amt > state.wallets.NGN) return alert("Insufficient NGN Balance!");
+                const bank = document.getElementById('bankName').value;
+                const acct = document.getElementById('acctNum').value;
+                
+                if(acct.length < 10) return alert("Invalid Account Number");
+
+                // Execute
+                state.wallets.NGN -= amt;
+                state.history.unshift({ type: 'Transfer', desc: `To ${bank} - ${acct}`, amount: `-₦${amt.toLocaleString()}`, date: 'Just Now' });
+                showReceipt(`Sent ₦${amt} to ${bank}`);
+
+            } else {
+                if(amt > state.wallets.USDC) return alert("Insufficient USDC Balance!");
+                const user = document.getElementById('username').value;
+                
+                // Execute
+                state.wallets.USDC -= amt;
+                state.history.unshift({ type: 'Sent', desc: `To ${user}`, amount: `-$${amt}`, date: 'Just Now' });
+                showReceipt(`Sent $${amt} to ${user}`);
+            }
             saveState();
-            showToast("Sent!");
-            router('home');
         }
 
         function calcSwap() {
-            const amt = parseFloat(document.getElementById('swapAmount').value);
-            if(amt) document.getElementById('swapReceive').value = (amt / state.rates.USDC_NGN).toFixed(2);
+            const val = parseFloat(document.getElementById('swapAmt').value);
+            if(val) document.getElementById('swapOut').value = (val / state.rates.USDC_NGN).toFixed(2);
         }
 
         function processSwap() {
-            const amt = parseFloat(document.getElementById('swapAmount').value);
-            if(!amt || amt > state.wallets.NGN) return showToast("Invalid Amount");
+            const amt = parseFloat(document.getElementById('swapAmt').value);
+            if(!amt || amt > state.wallets.NGN) return alert("Invalid Amount");
             
             const recv = amt / state.rates.USDC_NGN;
             state.wallets.NGN -= amt;
             state.wallets.USDC += recv;
-            state.history.unshift({ type: 'Swap', amount: `+${recv.toFixed(2)} USDC`, date: 'Just Now' });
+            state.history.unshift({ type: 'Swap', desc: 'NGN to USDC', amount: `+${recv.toFixed(2)} USDC`, date: 'Just Now' });
+            
             saveState();
-            showToast("Swapped!");
-            router('wallet');
+            showReceipt(`Swapped ₦${amt} to $${recv.toFixed(2)}`);
         }
 
-        function showToast(msg) {
-            const x = document.getElementById("toast");
-            x.textContent = msg;
-            x.className = "show";
-            setTimeout(() => x.className = x.className.replace("show", ""), 3000);
+        function showReceipt(msg) {
+            document.getElementById('receipt-msg').textContent = msg;
+            document.getElementById('receipt-modal').style.display = 'flex';
         }
 
-        // START APP
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => router('home'), 100); 
-        });
+        function closeReceipt() {
+            document.getElementById('receipt-modal').style.display = 'none';
+            router('home');
+        }
+
+        // Init
+        setTimeout(() => router('home'), 100);
 
     </script>
 </body>
