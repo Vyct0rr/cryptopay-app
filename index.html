@@ -93,6 +93,11 @@
         /* SCANNER ANIMATION */
         .scan-line { height: 2px; background: #10B981; width: 100%; position: absolute; animation: scan 1.5s infinite linear; box-shadow: 0 0 10px #10B981; }
         @keyframes scan { 0% {top:10%} 50% {top:90%} 100% {top:10%} }
+        
+        /* TABS */
+        .tab-group { display: flex; margin-bottom: 20px; background: var(--bg); padding: 4px; border-radius: 12px; }
+        .tab-btn { flex: 1; padding: 10px; border-radius: 10px; text-align: center; font-size: 0.9rem; font-weight: 600; cursor: pointer; color: var(--text-sub); }
+        .tab-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
     </style>
 </head>
@@ -128,17 +133,61 @@
     </div>
 
     <div id="receive-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'">
-        <div class="modal-sheet text-center">
-            <h2 class="font-bold text-xl mb-4">Receive Money</h2>
-            <div class="card flex justify-center p-4" style="background: white;">
-                <img id="qr-image" src="" style="width:180px; height:180px; opacity:0.9">
+        <div class="modal-sheet">
+            <h2 class="font-bold text-xl mb-4 text-center">Receive Money</h2>
+            
+            <div class="tab-group">
+                <div class="tab-btn active" id="tab-crypto" onclick="switchRecv('crypto')">Crypto</div>
+                <div class="tab-btn" id="tab-fiat" onclick="switchRecv('fiat')">Bank Transfer</div>
             </div>
-            <p class="text-sm text-gray mb-2">Wallet Address (USDC/NGN)</p>
-            <div class="card flex justify-between items-center p-3" style="margin-top:0">
-                <div class="text-xs" style="font-family:monospace; word-break:break-all;" id="wallet-addr">0x71C...39A</div>
-                <div style="color:var(--primary); font-weight:bold; cursor:pointer" onclick="copyAddr()">COPY</div>
+
+            <div id="recv-crypto-section">
+                <div class="input-group">
+                    <label>Asset</label>
+                    <select id="recv-asset" class="select-field" onchange="updateAddr()">
+                        <option value="USDC">USDC (Stablecoin)</option>
+                        <option value="USDT">USDT (Tether)</option>
+                        <option value="BTC">Bitcoin</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Network</label>
+                    <select id="recv-net" class="select-field" onchange="updateAddr()">
+                        <option value="BASE">Base Network (Low Fee)</option>
+                        <option value="SOL">Solana</option>
+                        <option value="ERC20">Ethereum (ERC20)</option>
+                    </select>
+                </div>
+                
+                <div class="card flex flex-col items-center justify-center p-4" style="background: white; border: 1px solid #eee;">
+                    <img id="qr-image" src="" style="width:160px; height:160px; opacity:0.9; margin-bottom:15px">
+                    <p class="text-xs text-gray mb-1">Deposit Address</p>
+                    <div class="text-xs font-bold text-center" style="font-family:monospace; word-break:break-all; background:#f9f9f9; padding:8px; border-radius:8px; width:100%" id="wallet-addr">...</div>
+                </div>
+                <button class="btn btn-primary" onclick="copyAddr()">Copy Address</button>
             </div>
-            <button class="btn btn-outline" onclick="document.getElementById('receive-modal').style.display='none'">Close</button>
+
+            <div id="recv-fiat-section" style="display:none">
+                <div class="card" style="background: linear-gradient(135deg, #111827 0%, #1F2937 100%); color: white; border:none;">
+                    <div class="text-sm text-gray" style="margin-bottom:5px">Virtual Account</div>
+                    <div class="font-bold text-xl mb-4" style="letter-spacing:2px" id="v-acct-num">8123456789</div>
+                    <div class="flex justify-between">
+                        <div>
+                            <div class="text-xs text-gray">Bank Name</div>
+                            <div class="font-bold text-sm">CryptoPay MFB</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-gray">Account Name</div>
+                            <div class="font-bold text-sm">John Doe</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <p class="text-sm text-gray">Transfer to this account number to fund your Naira wallet instantly.</p>
+                </div>
+                <button class="btn btn-primary" onclick="copyFiat()">Copy Account Number</button>
+            </div>
+
         </div>
     </div>
 
@@ -153,13 +202,9 @@
     </div>
 
     <div id="tx-detail-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'"><div class="modal-sheet"><div class="text-center mb-4"><div style="font-size:3rem">🧾</div><h2 class="font-bold text-xl">Receipt</h2></div><div class="card" style="border:none; background:var(--bg)"><div class="detail-row"><span class="detail-label">Type</span><span class="font-bold" id="tx-type"></span></div><div class="detail-row"><span class="detail-label">Amt</span><span class="font-bold" id="tx-amt"></span></div><div class="detail-row"><span class="detail-label">Desc</span><span id="tx-desc"></span></div><div class="detail-row"><span class="detail-label">Date</span><span id="tx-date"></span></div></div><button class="btn btn-primary" onclick="alert('Shared!')">Share</button></div></div>
-
     <div id="profile-modal" class="modal-overlay" onclick="if(event.target===this) closeProfile()"><div class="modal-sheet"><div class="text-center mb-4"><h2 class="font-bold text-xl">John Doe <span style="color:#3B82F6">✓</span></h2><div class="text-gray text-sm">@johndoe</div></div><div class="flex justify-between items-center p-4 border-b"><span>Dark Mode</span><input type="checkbox" id="dark-toggle" onchange="toggleDark()"></div><button class="btn btn-outline" style="color:var(--danger); margin-top:20px" onclick="resetApp()">Reset App</button></div></div>
-    
     <div id="bill-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'"><div class="modal-sheet"><h2 class="font-bold text-xl mb-4">Pay Bill</h2><div class="input-group"><label>Target</label><input type="tel" id="bill-target" class="input-field"></div><div class="input-group"><label>Amount</label><input type="number" id="bill-amt" class="input-field"></div><button class="btn btn-primary" onclick="processBill()">Pay Now</button></div></div>
-    
     <div id="deposit-modal" class="modal-overlay" onclick="if(event.target===this) this.style.display='none'"><div class="modal-sheet"><h2 class="font-bold text-xl mb-4">Add Money</h2><div class="input-group"><label>Source</label><select class="select-field"><option>Bank Card</option></select></div><div class="input-group"><label>Amount (NGN)</label><input type="number" id="dep-amt" class="input-field"></div><button class="btn btn-success" onclick="processDeposit()">Fund Wallet</button></div></div>
-    
     <div id="receipt-modal" class="modal-overlay" style="align-items:center;"><div class="modal-sheet text-center" style="border-radius:20px;"><div style="font-size:4rem">✅</div><h2 class="font-bold text-xl">Success!</h2><p id="receipt-msg" class="text-gray mt-4"></p><button class="btn btn-primary mt-4" onclick="closeReceipt()">Done</button></div></div>
 
     <script>
@@ -172,13 +217,13 @@
         function clearPin() { pin = pin.slice(0, -1); updatePinUI(); }
         function updatePinUI() { for(let i=1; i<=4; i++) document.getElementById('p'+i).className = i <= pin.length ? "pin-dot filled" : "pin-dot"; }
 
-        const defaultState = { wallets: { NGN: 25000.00, USDC: 100.00 }, rates: { USDC_NGN: 1500 }, history: [{ type:'Welcome', desc:'Account Created', amount:'N/A', date:'Nov 20' }], darkMode: false };
+        const defaultState = { wallets: { NGN: 25000.00, USDC: 100.00 }, rates: { USDC_NGN: 1500 }, history: [{ type:'Welcome', desc:'Account Created', amount:'N/A', date:'Nov 20' }], darkMode: false, phone: '08123456789' };
         let state = JSON.parse(JSON.stringify(defaultState));
         let sendMode='wallet'; let activeBill='';
 
-        try { const saved=localStorage.getItem('cryptopayState_v8'); if(saved) state=JSON.parse(saved); } catch(e){}
+        try { const saved=localStorage.getItem('cryptopayState_v9'); if(saved) state=JSON.parse(saved); } catch(e){}
         if(state.darkMode) { document.body.classList.add('dark-mode'); setTimeout(()=>document.getElementById('dark-toggle').checked=true,100); }
-        function saveState() { localStorage.setItem('cryptopayState_v8', JSON.stringify(state)); }
+        function saveState() { localStorage.setItem('cryptopayState_v9', JSON.stringify(state)); }
 
         // --- ROUTER & SCREENS ---
         function router(screen) {
@@ -237,14 +282,46 @@
         function renderWallet(c) { c.innerHTML = `<h2 class="font-bold text-xl mb-4">My Assets</h2><div class="card flex justify-between items-center mb-3"><div><div class="font-bold text-xl">🇳🇬 NGN</div></div><div class="text-right"><div class="font-bold text-xl">₦${state.wallets.NGN.toLocaleString()}</div><button class="btn btn-outline" style="padding:5px 10px; margin-top:5px; font-size:0.8rem" onclick="document.getElementById('deposit-modal').style.display='flex'">+ Add Money</button></div></div><div class="card flex justify-between items-center"><div><div class="font-bold text-xl">🇺🇸 USDC</div></div><div class="font-bold text-xl">$${state.wallets.USDC.toFixed(2)}</div></div>`; }
         function renderSwap(c) { c.innerHTML = `<h2 class="font-bold text-xl mb-4">Swap Crypto</h2><div class="card"><div class="input-group"><label>From (NGN)</label><input type="number" id="swapAmt" class="input-field" oninput="calcSwap()"></div><div class="text-center my-2">⬇️</div><div class="input-group"><label>To (USDC)</label><input type="text" id="swapOut" class="input-field" disabled></div><button class="btn btn-primary" onclick="processSwap()">Swap Now</button></div>`; }
 
-        // --- FEATURES ---
+        // --- RECEIVE LOGIC ---
         function openReceive() {
-            const addr = "0x" + Math.random().toString(16).substr(2, 8).toUpperCase() + "...39A";
-            document.getElementById('wallet-addr').textContent = addr;
-            document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${addr}`;
+            // Set Default
+            switchRecv('crypto');
+            updateAddr();
+            // Set Account Number (Phone minus first zero)
+            const acct = state.phone.substring(1);
+            document.getElementById('v-acct-num').textContent = acct;
             document.getElementById('receive-modal').style.display = 'flex';
         }
-        function copyAddr() { alert("Address copied to clipboard!"); }
+
+        function switchRecv(type) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-'+type).classList.add('active');
+            
+            if(type === 'crypto') {
+                document.getElementById('recv-crypto-section').style.display = 'block';
+                document.getElementById('recv-fiat-section').style.display = 'none';
+            } else {
+                document.getElementById('recv-crypto-section').style.display = 'none';
+                document.getElementById('recv-fiat-section').style.display = 'block';
+            }
+        }
+
+        function updateAddr() {
+            const asset = document.getElementById('recv-asset').value;
+            const net = document.getElementById('recv-net').value;
+            let addr = "0x...";
+            
+            // Simulation of unique address logic
+            if(net === 'SOL') addr = "8x" + Math.random().toString(36).substr(2, 8).toUpperCase() + "...SOL";
+            else if(net === 'BASE') addr = "0x" + Math.random().toString(16).substr(2, 8).toUpperCase() + "...BASE";
+            else addr = "1x" + Math.random().toString(16).substr(2, 8).toUpperCase() + "...ETH";
+
+            document.getElementById('wallet-addr').textContent = addr;
+            document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${asset}:${addr}`;
+        }
+
+        function copyAddr() { alert("Crypto Address Copied!"); }
+        function copyFiat() { alert("Account Number Copied!"); }
 
         function openScanner() {
             document.getElementById('scanner-modal').style.display = 'flex';
@@ -273,7 +350,7 @@
         function closeProfile() { document.getElementById('profile-modal').style.display='none'; }
         function toggleDark() { state.darkMode=!state.darkMode; document.body.classList.toggle('dark-mode'); saveState(); }
         function openBill(t) { activeBill=t; document.getElementById('bill-modal').style.display='flex'; }
-        function resetApp() { if(confirm("Reset?")) { localStorage.removeItem('cryptopayState_v8'); location.reload(); } }
+        function resetApp() { if(confirm("Reset?")) { localStorage.removeItem('cryptopayState_v9'); location.reload(); } }
 
         setTimeout(() => router('home'), 100);
     </script>
