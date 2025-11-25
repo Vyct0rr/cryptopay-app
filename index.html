@@ -18,7 +18,6 @@
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text-dark); padding-bottom: 80px; }
         
         /* UTILITIES */
-        .hidden { display: none !important; }
         .flex { display: flex; }
         .justify-between { justify-content: space-between; }
         .p-4 { padding: 16px; }
@@ -53,9 +52,9 @@
         /* HOME SPECIFIC */
         .balance-card { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; text-align: center; padding: 35px 20px; border-radius: 24px; margin-bottom: 25px; }
         .balance-amount { font-size: 2.5rem; font-weight: 800; margin: 10px 0; }
+        .recent-tx-item { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #F3F4F6; }
         .action-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 25px; }
         .action-btn { background: var(--white); padding: 16px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-decoration: none; color: var(--text-dark); }
-        .recent-tx-item { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #F3F4F6; }
 
         /* RECEIPT MODAL */
         #receipt-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: none; justify-content: center; align-items: center; }
@@ -65,18 +64,12 @@
 </head>
 <body>
 
-    <script>
-        // Error trap
-        window.onerror = function(msg) { alert("Error: " + msg); };
-    </script>
-
     <header>
         <div class="font-bold text-xl">CryptoPay</div>
-        <div style="width:35px; height:35px; background:#E0E7FF; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--primary); font-weight:bold;">JD</div>
+        <div onclick="resetApp()" style="width:35px; height:35px; background:#E0E7FF; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--primary); font-weight:bold;">JD</div>
     </header>
 
-    <main id="app-content" class="p-4">
-        </main>
+    <main id="app-content" class="p-4"></main>
 
     <div id="receipt-modal">
         <div class="receipt-content">
@@ -98,24 +91,24 @@
     <script>
         // --- DATA & STATE ---
         const defaultState = {
-            wallets: { NGN: 55000.00, USDC: 150.00 },
-            rates: { USDC_NGN: 1500 }, // 1 USDC = 1500 NGN
+            wallets: { NGN: 50000.00, USDC: 150.00 },
+            rates: { USDC_NGN: 1500 }, 
             history: [
                 { type: 'Deposit', desc: 'From Bank', amount: '+₦50,000', date: 'Nov 20' }
             ]
         };
 
         let state = JSON.parse(JSON.stringify(defaultState));
-        let sendMode = 'wallet'; // 'wallet' or 'bank'
+        let sendMode = 'wallet'; 
 
         // Load State
         try {
-            const saved = localStorage.getItem('cryptopayState_v2');
+            const saved = localStorage.getItem('cryptopayState_v3');
             if(saved) state = JSON.parse(saved);
         } catch(e) {}
 
         function saveState() {
-            localStorage.setItem('cryptopayState_v2', JSON.stringify(state));
+            localStorage.setItem('cryptopayState_v3', JSON.stringify(state));
         }
 
         // --- ROUTER ---
@@ -139,13 +132,20 @@
 
         function renderHome(container) {
             const usdc = state.wallets.USDC;
-            const ngnVal = usdc * state.rates.USDC_NGN;
+            const ngn = state.wallets.NGN;
+            const rate = state.rates.USDC_NGN;
+
+            // CORRECT MATH: Total Value = USDC + (NGN converted to USD)
+            const totalUSD = usdc + (ngn / rate);
+            
+            // CORRECT MATH: Total Value in NGN = (USDC converted to NGN) + NGN
+            const totalNGN = (usdc * rate) + ngn;
             
             container.innerHTML = `
                 <div class="balance-card">
-                    <div class="text-sm" style="opacity: 0.9">Total Balance (USD Eqv)</div>
-                    <div class="balance-amount">$${usdc.toFixed(2)}</div>
-                    <div class="text-sm">≈ ₦${ngnVal.toLocaleString()}</div>
+                    <div class="text-sm" style="opacity: 0.9">Total Net Worth</div>
+                    <div class="balance-amount">$${totalUSD.toFixed(2)}</div>
+                    <div class="text-sm">≈ ₦${totalNGN.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
                 </div>
 
                 <div class="action-grid">
@@ -174,12 +174,10 @@
         }
 
         function renderSend(container) {
-            // Check which tab is active
             const isBank = sendMode === 'bank';
 
             container.innerHTML = `
                 <h2 class="font-bold text-xl mb-4">Send Money</h2>
-                
                 <div class="flex mb-4">
                     <button class="btn btn-outline ${!isBank ? 'active' : ''}" style="margin-right:10px; flex:1" onclick="setSendMode('wallet')">To Wallet</button>
                     <button class="btn btn-outline ${isBank ? 'active' : ''}" style="flex:1" onclick="setSendMode('bank')">To Bank</button>
@@ -216,7 +214,6 @@
                             <div class="text-xs text-gray mt-2">Available: $${state.wallets.USDC.toFixed(2)}</div>
                         </div>
                     `}
-                    
                     <button class="btn btn-primary mt-4" onclick="processSend()">
                         ${isBank ? 'Send to Bank' : 'Send Crypto'}
                     </button>
@@ -265,7 +262,7 @@
 
         function setSendMode(mode) {
             sendMode = mode;
-            router('send'); // re-render
+            router('send');
         }
 
         function processSend() {
@@ -276,19 +273,15 @@
                 if(amt > state.wallets.NGN) return alert("Insufficient NGN Balance!");
                 const bank = document.getElementById('bankName').value;
                 const acct = document.getElementById('acctNum').value;
-                
                 if(acct.length < 10) return alert("Invalid Account Number");
 
-                // Execute
                 state.wallets.NGN -= amt;
-                state.history.unshift({ type: 'Transfer', desc: `To ${bank} - ${acct}`, amount: `-₦${amt.toLocaleString()}`, date: 'Just Now' });
+                state.history.unshift({ type: 'Transfer', desc: `To ${bank}`, amount: `-₦${amt.toLocaleString()}`, date: 'Just Now' });
                 showReceipt(`Sent ₦${amt} to ${bank}`);
 
             } else {
                 if(amt > state.wallets.USDC) return alert("Insufficient USDC Balance!");
                 const user = document.getElementById('username').value;
-                
-                // Execute
                 state.wallets.USDC -= amt;
                 state.history.unshift({ type: 'Sent', desc: `To ${user}`, amount: `-$${amt}`, date: 'Just Now' });
                 showReceipt(`Sent $${amt} to ${user}`);
@@ -322,6 +315,13 @@
         function closeReceipt() {
             document.getElementById('receipt-modal').style.display = 'none';
             router('home');
+        }
+
+        function resetApp() {
+            if(confirm("Reset all balances?")) {
+                localStorage.removeItem('cryptopayState_v3');
+                location.reload();
+            }
         }
 
         // Init
