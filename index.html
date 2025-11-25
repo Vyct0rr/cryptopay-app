@@ -13,27 +13,33 @@
             --text-dark: #1F2937;
             --text-gray: #6B7280;
             --success: #10B981;
+            --danger: #EF4444;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text-dark); padding-bottom: 80px; }
         
         /* UTILITIES */
         .flex { display: flex; }
+        .flex-col { flex-direction: column; }
         .justify-between { justify-content: space-between; }
+        .items-center { align-items: center; }
         .p-4 { padding: 16px; }
         .mt-4 { margin-top: 16px; }
+        .mb-4 { margin-bottom: 16px; }
         .text-center { text-align: center; }
         .font-bold { font-weight: 700; }
         .text-xl { font-size: 1.25rem; }
         .text-sm { font-size: 0.875rem; }
         .text-gray { color: var(--text-gray); }
         .text-success { color: var(--success); }
+        .text-danger { color: var(--danger); }
         
         /* COMPONENTS */
         .card { background: var(--white); border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 15px; }
         
         .btn { border: none; padding: 14px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; font-size: 1rem; margin-top: 10px; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
         .btn-outline { border: 1px solid #E5E7EB; background: white; color: var(--text-gray); }
         .btn-outline.active { border-color: var(--primary); color: var(--primary); background: #E0E7FF; }
         
@@ -56,8 +62,18 @@
         .action-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 25px; }
         .action-btn { background: var(--white); padding: 16px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-decoration: none; color: var(--text-dark); }
 
+        /* PAY GRID */
+        .pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .pay-item { background: white; padding: 20px; border-radius: 16px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer; }
+        .pay-icon { font-size: 2rem; margin-bottom: 10px; display: block; }
+
+        /* MODALS */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; display: none; justify-content: center; align-items: flex-end; }
+        .modal-sheet { background: white; width: 100%; padding: 25px; border-radius: 24px 24px 0 0; animation: slideUp 0.3s ease; max-height: 80vh; overflow-y: auto; }
+        @keyframes slideUp { from {transform: translateY(100%);} to {transform: translateY(0);} }
+
         /* RECEIPT MODAL */
-        #receipt-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: none; justify-content: center; align-items: center; }
+        #receipt-modal { align-items: center; }
         .receipt-content { background: white; width: 85%; padding: 30px; border-radius: 20px; text-align: center; animation: popUp 0.3s ease; }
         @keyframes popUp { from {transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;} }
     </style>
@@ -71,7 +87,41 @@
 
     <main id="app-content" class="p-4"></main>
 
-    <div id="receipt-modal">
+    <div id="bill-modal" class="modal-overlay" onclick="if(event.target === this) closeBillModal()">
+        <div class="modal-sheet">
+            <h2 id="bill-title" class="font-bold text-xl mb-4">Pay Bill</h2>
+            <div class="input-group">
+                <label id="bill-label">Phone Number</label>
+                <input type="tel" id="bill-target" class="input-field" placeholder="080...">
+            </div>
+            <div class="input-group">
+                <label>Amount (NGN)</label>
+                <input type="number" id="bill-amount" class="input-field" placeholder="1000">
+                <div class="text-xs text-gray mt-2">Bal: ₦<span id="bill-balance"></span></div>
+            </div>
+            <button class="btn btn-primary" onclick="processBill()">Pay Now</button>
+        </div>
+    </div>
+
+    <div id="deposit-modal" class="modal-overlay" onclick="if(event.target === this) closeDepositModal()">
+        <div class="modal-sheet">
+            <h2 class="font-bold text-xl mb-4">Add Money</h2>
+            <div class="input-group">
+                <label>Source</label>
+                <select class="select-field">
+                    <option>Bank Card (**** 1234)</option>
+                    <option>Bank Transfer</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Amount (NGN)</label>
+                <input type="number" id="deposit-amount" class="input-field" placeholder="50000">
+            </div>
+            <button class="btn btn-success" onclick="processDeposit()">Fund Wallet</button>
+        </div>
+    </div>
+
+    <div id="receipt-modal" class="modal-overlay">
         <div class="receipt-content">
             <div style="font-size: 4rem; margin-bottom: 10px">✅</div>
             <h2 class="font-bold text-xl">Success!</h2>
@@ -91,24 +141,25 @@
     <script>
         // --- DATA & STATE ---
         const defaultState = {
-            wallets: { NGN: 50000.00, USDC: 150.00 },
+            wallets: { NGN: 25000.00, USDC: 100.00 },
             rates: { USDC_NGN: 1500 }, 
             history: [
-                { type: 'Deposit', desc: 'From Bank', amount: '+₦50,000', date: 'Nov 20' }
+                { type: 'Welcome', desc: 'Account Created', amount: '', date: 'Nov 20' }
             ]
         };
 
         let state = JSON.parse(JSON.stringify(defaultState));
         let sendMode = 'wallet'; 
+        let activeBillType = '';
 
         // Load State
         try {
-            const saved = localStorage.getItem('cryptopayState_v3');
+            const saved = localStorage.getItem('cryptopayState_v4');
             if(saved) state = JSON.parse(saved);
         } catch(e) {}
 
         function saveState() {
-            localStorage.setItem('cryptopayState_v3', JSON.stringify(state));
+            localStorage.setItem('cryptopayState_v4', JSON.stringify(state));
         }
 
         // --- ROUTER ---
@@ -134,11 +185,7 @@
             const usdc = state.wallets.USDC;
             const ngn = state.wallets.NGN;
             const rate = state.rates.USDC_NGN;
-
-            // CORRECT MATH: Total Value = USDC + (NGN converted to USD)
             const totalUSD = usdc + (ngn / rate);
-            
-            // CORRECT MATH: Total Value in NGN = (USDC converted to NGN) + NGN
             const totalNGN = (usdc * rate) + ngn;
             
             container.innerHTML = `
@@ -155,8 +202,8 @@
                     <a class="action-btn" onclick="router('pay')">
                         <span style="font-size: 1.5rem">🧾</span><span class="font-bold text-sm">Pay</span>
                     </a>
-                    <a class="action-btn" onclick="router('swap')">
-                        <span style="font-size: 1.5rem">🔄</span><span class="font-bold text-sm">Swap</span>
+                    <a class="action-btn" onclick="openDepositModal()">
+                        <span style="font-size: 1.5rem">➕</span><span class="font-bold text-sm">Add Money</span>
                     </a>
                 </div>
 
@@ -167,15 +214,70 @@
                             <div class="font-bold">${tx.type}</div>
                             <div class="text-xs text-gray">${tx.desc}</div>
                         </div>
-                        <div class="font-bold ${tx.amount.includes('+') ? 'text-success' : ''}">${tx.amount}</div>
+                        <div class="font-bold ${tx.amount.includes('-') ? 'text-danger' : 'text-success'}">${tx.amount}</div>
                     </div>
                 `).join('')}
             `;
         }
 
+        function renderPay(container) {
+            container.innerHTML = `
+                <h2 class="font-bold text-xl mb-4">Pay Bills</h2>
+                <div class="card flex items-center justify-between" style="padding:15px">
+                     <div>
+                        <div class="font-bold">Scan to Pay</div>
+                        <div class="text-xs text-gray">Merchants & POS</div>
+                     </div>
+                     <div style="font-size:2rem">📷</div>
+                </div>
+
+                <h3 class="font-bold mt-4">Utilities</h3>
+                <div class="pay-grid">
+                    <div class="pay-item" onclick="openBillModal('Airtime')">
+                        <span class="pay-icon">📱</span>
+                        <div class="font-bold text-sm">Airtime</div>
+                    </div>
+                    <div class="pay-item" onclick="openBillModal('Data')">
+                        <span class="pay-icon">📶</span>
+                        <div class="font-bold text-sm">Data Bundle</div>
+                    </div>
+                    <div class="pay-item" onclick="openBillModal('Electricity')">
+                        <span class="pay-icon">💡</span>
+                        <div class="font-bold text-sm">Electricity</div>
+                    </div>
+                    <div class="pay-item" onclick="openBillModal('TV')">
+                        <span class="pay-icon">📺</span>
+                        <div class="font-bold text-sm">Cable TV</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderWallet(container) {
+            container.innerHTML = `
+                <h2 class="font-bold text-xl mb-4">My Assets</h2>
+                <div class="card flex justify-between items-center mb-3">
+                    <div>
+                        <div class="font-bold text-xl">🇳🇬 NGN</div>
+                        <div class="text-xs text-gray">Fiat Balance</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-xl">₦${state.wallets.NGN.toLocaleString()}</div>
+                        <button class="btn btn-outline" style="padding:5px 10px; margin-top:5px; font-size:0.8rem" onclick="openDepositModal()">+ Add Money</button>
+                    </div>
+                </div>
+                <div class="card flex justify-between items-center">
+                    <div>
+                        <div class="font-bold text-xl">🇺🇸 USDC</div>
+                        <div class="text-xs text-gray">Stablecoin</div>
+                    </div>
+                    <div class="font-bold text-xl">$${state.wallets.USDC.toFixed(2)}</div>
+                </div>
+            `;
+        }
+
         function renderSend(container) {
             const isBank = sendMode === 'bank';
-
             container.innerHTML = `
                 <h2 class="font-bold text-xl mb-4">Send Money</h2>
                 <div class="flex mb-4">
@@ -187,12 +289,7 @@
                     ${isBank ? `
                         <div class="input-group">
                             <label>Select Bank</label>
-                            <select id="bankName" class="select-field">
-                                <option>GTBank</option>
-                                <option>Access Bank</option>
-                                <option>OPay</option>
-                                <option>Kuda</option>
-                            </select>
+                            <select id="bankName" class="select-field"><option>GTBank</option><option>Access Bank</option><option>OPay</option></select>
                         </div>
                         <div class="input-group">
                             <label>Account Number</label>
@@ -205,7 +302,7 @@
                         </div>
                     ` : `
                         <div class="input-group">
-                            <label>Username or Address</label>
+                            <label>Username</label>
                             <input type="text" id="username" class="input-field" placeholder="@username">
                         </div>
                         <div class="input-group">
@@ -214,15 +311,13 @@
                             <div class="text-xs text-gray mt-2">Available: $${state.wallets.USDC.toFixed(2)}</div>
                         </div>
                     `}
-                    <button class="btn btn-primary mt-4" onclick="processSend()">
-                        ${isBank ? 'Send to Bank' : 'Send Crypto'}
-                    </button>
+                    <button class="btn btn-primary mt-4" onclick="processSend()">${isBank ? 'Send to Bank' : 'Send Crypto'}</button>
                 </div>
             `;
         }
 
-        function renderSwap(container) {
-            container.innerHTML = `
+        function renderSwap(c) {
+             c.innerHTML = `
                 <h2 class="font-bold text-xl mb-4">Swap Crypto</h2>
                 <div class="card">
                     <div class="input-group">
@@ -236,97 +331,56 @@
                         <input type="text" id="swapOut" class="input-field" disabled placeholder="0.00">
                     </div>
                     <button class="btn btn-primary" onclick="processSwap()">Swap Now</button>
-                </div>
-            `;
+                </div>`;
         }
 
-        function renderWallet(container) {
-            container.innerHTML = `
-                <h2 class="font-bold text-xl mb-4">My Assets</h2>
-                <div class="card flex justify-between items-center mb-3">
-                    <div class="font-bold text-xl">🇳🇬 NGN</div>
-                    <div class="font-bold text-xl">₦${state.wallets.NGN.toLocaleString()}</div>
-                </div>
-                <div class="card flex justify-between items-center">
-                    <div class="font-bold text-xl">🇺🇸 USDC</div>
-                    <div class="font-bold text-xl">$${state.wallets.USDC.toFixed(2)}</div>
-                </div>
-            `;
-        }
-        
-        function renderPay(c) {
-             c.innerHTML = `<div class="card text-center"><h2 class="mb-4">Scan QR</h2><div style="font-size:4rem">📷</div></div>`; 
-        }
+        // --- LOGIC: BILLS & DEPOSIT ---
 
-        // --- LOGIC ---
-
-        function setSendMode(mode) {
-            sendMode = mode;
-            router('send');
+        // Deposit Logic
+        function openDepositModal() {
+            document.getElementById('deposit-modal').style.display = 'flex';
         }
-
-        function processSend() {
-            const amt = parseFloat(document.getElementById('sendAmount').value);
+        function closeDepositModal() {
+            document.getElementById('deposit-modal').style.display = 'none';
+        }
+        function processDeposit() {
+            const amt = parseFloat(document.getElementById('deposit-amount').value);
             if(!amt || amt <= 0) return alert("Enter valid amount");
-
-            if(sendMode === 'bank') {
-                if(amt > state.wallets.NGN) return alert("Insufficient NGN Balance!");
-                const bank = document.getElementById('bankName').value;
-                const acct = document.getElementById('acctNum').value;
-                if(acct.length < 10) return alert("Invalid Account Number");
-
-                state.wallets.NGN -= amt;
-                state.history.unshift({ type: 'Transfer', desc: `To ${bank}`, amount: `-₦${amt.toLocaleString()}`, date: 'Just Now' });
-                showReceipt(`Sent ₦${amt} to ${bank}`);
-
-            } else {
-                if(amt > state.wallets.USDC) return alert("Insufficient USDC Balance!");
-                const user = document.getElementById('username').value;
-                state.wallets.USDC -= amt;
-                state.history.unshift({ type: 'Sent', desc: `To ${user}`, amount: `-$${amt}`, date: 'Just Now' });
-                showReceipt(`Sent $${amt} to ${user}`);
-            }
+            
+            state.wallets.NGN += amt;
+            state.history.unshift({ type: 'Deposit', desc: 'Card Funding', amount: `+₦${amt.toLocaleString()}`, date: 'Just Now' });
             saveState();
+            closeDepositModal();
+            showReceipt(`Funded ₦${amt.toLocaleString()}`);
         }
 
+        // Bills Logic
+        function openBillModal(type) {
+            activeBillType = type;
+            document.getElementById('bill-title').textContent = `Pay ${type}`;
+            document.getElementById('bill-label').textContent = type === 'Electricity' ? 'Meter Number' : 'Phone Number';
+            document.getElementById('bill-balance').textContent = state.wallets.NGN.toLocaleString();
+            document.getElementById('bill-modal').style.display = 'flex';
+        }
+        function closeBillModal() {
+            document.getElementById('bill-modal').style.display = 'none';
+        }
+        function processBill() {
+            const amt = parseFloat(document.getElementById('bill-amount').value);
+            const target = document.getElementById('bill-target').value;
+            
+            if(!amt || !target) return alert("Fill all details");
+            if(amt > state.wallets.NGN) return alert("Insufficient Balance");
+
+            state.wallets.NGN -= amt;
+            state.history.unshift({ type: 'Bill Pay', desc: `${activeBillType} - ${target}`, amount: `-₦${amt.toLocaleString()}`, date: 'Just Now' });
+            saveState();
+            closeBillModal();
+            showReceipt(`Paid ₦${amt} for ${activeBillType}`);
+        }
+
+        // --- OLD LOGIC (Send/Swap) ---
+        function setSendMode(mode) { sendMode = mode; router('send'); }
         function calcSwap() {
             const val = parseFloat(document.getElementById('swapAmt').value);
-            if(val) document.getElementById('swapOut').value = (val / state.rates.USDC_NGN).toFixed(2);
-        }
-
-        function processSwap() {
-            const amt = parseFloat(document.getElementById('swapAmt').value);
-            if(!amt || amt > state.wallets.NGN) return alert("Invalid Amount");
-            
-            const recv = amt / state.rates.USDC_NGN;
-            state.wallets.NGN -= amt;
-            state.wallets.USDC += recv;
-            state.history.unshift({ type: 'Swap', desc: 'NGN to USDC', amount: `+${recv.toFixed(2)} USDC`, date: 'Just Now' });
-            
-            saveState();
-            showReceipt(`Swapped ₦${amt} to $${recv.toFixed(2)}`);
-        }
-
-        function showReceipt(msg) {
-            document.getElementById('receipt-msg').textContent = msg;
-            document.getElementById('receipt-modal').style.display = 'flex';
-        }
-
-        function closeReceipt() {
-            document.getElementById('receipt-modal').style.display = 'none';
-            router('home');
-        }
-
-        function resetApp() {
-            if(confirm("Reset all balances?")) {
-                localStorage.removeItem('cryptopayState_v3');
-                location.reload();
-            }
-        }
-
-        // Init
-        setTimeout(() => router('home'), 100);
-
-    </script>
-</body>
-</html>
+            if(val) document.getElementBy
