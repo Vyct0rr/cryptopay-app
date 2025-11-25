@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CryptoPay</title>
+    <style>
+        /* CORE STYLES & VARIABLES */
+        :root {
+            --primary: #4F46E5; /* Indigo */
+            --bg: #F3F4F6;
+            --white: #ffffff;
+            --text-dark: #1F2937;
+            --text-gray: #6B7280;
+            --success: #10B981;
+            --danger: #EF4444;
+        }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text-dark); padding-bottom: 80px; }
+        
+        /* UTILITIES */
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .p-4 { padding: 16px; }
+        .mt-4 { margin-top: 16px; }
+        .text-center { text-align: center; }
+        .font-bold { font-weight: 700; }
+        .text-xl { font-size: 1.25rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-gray { color: var(--text-gray); }
+        .text-primary { color: var(--primary); }
+        
+        /* COMPONENTS */
+        .card { background: var(--white); border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        
+        .btn { border: none; padding: 12px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; font-size: 1rem; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:active { opacity: 0.9; transform: scale(0.98); }
+        .btn-outline { border: 1px solid var(--primary); color: var(--primary); background: transparent; }
+        
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: var(--text-gray); }
+        .input-field { width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 10px; font-size: 1rem; outline: none; }
+        .input-field:focus { border-color: var(--primary); }
+
+        /* HEADER */
+        header { background: var(--white); padding: 15px 20px; position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E5E7EB; }
+        .user-avatar { width: 35px; height: 35px; background: #E0E7FF; color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        /* BOTTOM NAV */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--white); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #E5E7EB; z-index: 20; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; color: var(--text-gray); text-decoration: none; }
+        .nav-item.active { color: var(--primary); }
+        .nav-icon { font-size: 1.2rem; margin-bottom: 4px; }
+
+        /* SCREENS */
+        
+        /* Home Screen */
+        .balance-card { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; text-align: center; padding: 30px 20px; border-radius: 20px; margin-bottom: 20px; }
+        .balance-amount { font-size: 2.5rem; font-weight: 800; margin: 10px 0; }
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .action-btn { background: var(--white); padding: 15px; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-decoration: none; color: var(--text-dark); }
+        .recent-tx-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #F3F4F6; }
+        
+        /* Toast Notification */
+        #toast { visibility: hidden; min-width: 250px; margin-left: -125px; background-color: #333; color: #fff; text-align: center; border-radius: 25px; padding: 16px; position: fixed; z-index: 50; left: 50%; bottom: 80px; font-size: 17px; }
+        #toast.show { visibility: visible; -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        
+        @-webkit-keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 80px; opacity: 1;} }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 80px; opacity: 1;} }
+        @-webkit-keyframes fadeout { from {bottom: 80px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+        @keyframes fadeout { from {bottom: 80px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="font-bold text-xl">CryptoPay</div>
+        <div class="user-avatar">JD</div>
+    </header>
+
+    <main id="app-content" class="p-4">
+        </main>
+
+    <div id="toast">Notification</div>
+
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active" onclick="router('home')">
+            <span class="nav-icon">🏠</span>
+            Home
+        </a>
+        <a href="#" class="nav-item" onclick="router('pay')">
+            <span class="nav-icon">📱</span>
+            Pay
+        </a>
+        <a href="#" class="nav-item" onclick="router('send')">
+            <span class="nav-icon">💸</span>
+            Send
+        </a>
+        <a href="#" class="nav-item" onclick="router('swap')">
+            <span class="nav-icon">🔄</span>
+            Swap
+        </a>
+        <a href="#" class="nav-item" onclick="router('wallet')">
+            <span class="nav-icon">💼</span>
+            Wallet
+        </a>
+    </nav>
+
+    <script>
+        // --- 1. MOCK DATA & STATE ---
+        [cite_start]// Simulating the DB Schema from Blueprint [cite: 144-146]
+        const state = {
+            user: { name: "John Doe", username: "@johndoe" },
+            wallets: {
+                NGN: 12500.00,
+                USDC: 26.00,
+                USDT: 10.00
+            },
+            rates: {
+                USDC_NGN: 1500 // 1 USDC = 1500 NGN
+            },
+            history: [
+                { type: 'Sent', to: '@alice', amount: '-$5.00', date: 'Today, 10:23 AM' },
+                { type: 'Swap', to: 'USDC', amount: '+20.00 USDC', date: 'Yesterday' },
+                { type: 'Received', from: 'Bank', amount: '+₦50,000', date: 'Nov 20' }
+            ]
+        };
+
+        // Load from local storage if exists (persistence)
+        if(localStorage.getItem('cryptopayState')) {
+            const saved = JSON.parse(localStorage.getItem('cryptopayState'));
+            state.wallets = saved.wallets;
+            state.history = saved.history;
+        }
+
+        function saveState() {
+            localStorage.setItem('cryptopayState', JSON.stringify(state));
+        }
+
+        // --- 2. ROUTER ---
+        [cite_start]// Switching screens as per Wireframes [cite: 49-53]
+        function router(screen) {
+            const app = document.getElementById('app-content');
+            
+            // Update Nav Styles
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const activeNav = document.querySelector(`.nav-item[onclick="router('${screen}')"]`);
+            if(activeNav) activeNav.classList.add('active');
+
+            // Render Screens
+            if (screen === 'home') renderHome(app);
+            if (screen === 'pay') renderPay(app);
+            if (screen === 'send') renderSend(app);
+            if (screen === 'swap') renderSwap(app);
+            if (screen === 'wallet') renderWallet(app);
+        }
+
+        // --- 3. SCREENS ---
+
+        [cite_start]// HOME SCREEN [cite: 44-48]
+        function renderHome(container) {
+            container.innerHTML = `
+                <div class="balance-card">
+                    <div class="text-sm" style="opacity: 0.9">Total Balance (Est.)</div>
+                    <div class="balance-amount">$${state.wallets.USDC.toFixed(2)}</div>
+                    <div class="text-sm">≈ ₦${(state.wallets.USDC * state.rates.USDC_NGN).toLocaleString()}</div>
+                </div>
+
+                <div class="action-grid">
+                    <a class="action-btn" onclick="router('send')">
+                        <span style="font-size: 1.5rem; margin-bottom: 5px">📤</span>
+                        <span class="text-sm font-bold">Send</span>
+                    </a>
+                    <a class="action-btn" onclick="router('pay')">
+                        <span style="font-size: 1.5rem; margin-bottom: 5px">🧾</span>
+                        <span class="text-sm font-bold">Pay</span>
+                    </a>
+                    <a class="action-btn" onclick="router('swap')">
+                        <span style="font-size: 1.5rem; margin-bottom: 5px">🔄</span>
+                        <span class="text-sm font-bold">Swap</span>
+                    </a>
+                </div>
+
+                <div class="flex justify-between items-center mt-4 mb-2">
+                    <h3 class="font-bold">Recent Activity</h3>
+                    <span class="text-primary text-sm">See all</span>
+                </div>
+                <div id="tx-list">
+                    ${state.history.map(tx => `
+                        <div class="recent-tx-item">
+                            <div>
+                                <div class="font-bold">${tx.type}</div>
+                                <div class="text-xs text-gray">${tx.date}</div>
+                            </div>
+                            <div class="font-bold ${tx.amount.includes('-') ? 'text-gray' : 'text-success'}">${tx.amount}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        [cite_start]// SEND SCREEN [cite: 65-70]
+        function renderSend(container) {
+            container.innerHTML = `
+                <h2 class="font-bold text-xl mb-4">Send Money</h2>
+                <div class="flex mb-4">
+                    <button class="btn btn-primary" style="margin-right: 10px; flex:1">To Wallet</button>
+                    <button class="btn btn-outline" style="flex:1">To Bank</button>
+                </div>
+                
+                <div class="card">
+                    <div class="input-group">
+                        <label>Recipient (Username or Address)</label>
+                        <input type="text" id="sendTo" class="input-field" placeholder="@username">
+                    </div>
+                    <div class="input-group">
+                        <label>Amount (USDC)</label>
+                        <input type="number" id="sendAmount" class="input-field" placeholder="0.00">
+                        <div class="text-xs text-gray mt-2">Balance: $${state.wallets.USDC}</div>
+                    </div>
+                    <button class="btn btn-primary mt-4" onclick="processSend()">Confirm Send</button>
+                </div>
+            `;
+        }
+
+        [cite_start]// SWAP SCREEN [cite: 97-101]
+        function renderSwap(container) {
+            container.innerHTML = `
+                <h2 class="font-bold text-xl mb-4">Swap Crypto</h2>
+                <div class="card">
+                    <div class="input-group">
+                        <label>From (Sell)</label>
+                        <select id="swapFrom" class="input-field"><option value="NGN">NGN (Naira)</option></select>
+                        <input type="number" id="swapAmount" class="input-field mt-2" placeholder="0.00" oninput="calcSwap()">
+                        <div class="text-xs text-gray mt-1">Balance: ₦${state.wallets.NGN.toLocaleString()}</div>
+                    </div>
+
+                    <div class="text-center my-2">⬇️</div>
+
+                    <div class="input-group">
+                        <label>To (Buy)</label>
+                        <select class="input-field"><option value="USDC">USDC (USD Coin)</option></select>
+                        <input type="text" id="swapReceive" class="input-field mt-2" placeholder="0.00" disabled>
+                    </div>
+
+                    <div class="flex justify-between text-sm text-gray mb-4">
+                        <span>Rate</span>
+                        <span>1 USDC = ₦${state.rates.USDC_NGN}</span>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="processSwap()">Swap Now</button>
+                </div>
+            `;
+        }
+
+        [cite_start]// WALLET SCREEN [cite: 107-109]
+        function renderWallet(container) {
+            container.innerHTML = `
+                <h2 class="font-bold text-xl mb-4">My Assets</h2>
+                ${Object.keys(state.wallets).map(coin => `
+                    <div class="card mb-4 flex justify-between items-center">
+                        <div>
+                            <div class="font-bold text-xl">${coin}</div>
+                            <div class="text-xs text-gray">CryptoPay Wallet</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-xl">${state.wallets[coin].toLocaleString()}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+        
+        [cite_start]// PAY SCREEN [cite: 55] (Placeholder)
+        function renderPay(container) {
+            container.innerHTML = `
+                <h2 class="font-bold text-xl mb-4">Pay Bills</h2>
+                <div class="card text-center p-4">
+                    <div style="font-size: 3rem; margin-bottom: 10px">📷</div>
+                    <p>Scan QR Code</p>
+                </div>
+                <h3 class="font-bold mt-6 mb-2">Utilities</h3>
+                <div class="action-grid">
+                    <div class="action-btn">💡 Elec</div>
+                    <div class="action-btn">📶 Data</div>
+                    <div class="action-btn">📺 TV</div>
+                </div>
+            `;
+        }
+
+        // --- 4. LOGIC FUNCTIONS ---
+
+        function processSend() {
+            const to = document.getElementById('sendTo').value;
+            const amount = parseFloat(document.getElementById('sendAmount').value);
+
+            if (!to || !amount) return showToast("Please fill all fields");
+            if (amount > state.wallets.USDC) return showToast("Insufficient Balance!");
+
+            // Update State
+            state.wallets.USDC -= amount;
+            state.history.unshift({
+                type: 'Sent',
+                to: to,
+                amount: `-$${amount.toFixed(2)}`,
+                date: 'Just Now'
+            });
+            saveState();
+            showToast(`Sent $${amount} to ${to}`);
+            router('home');
+        }
+
+        function calcSwap() {
+            const amount = parseFloat(document.getElementById('swapAmount').value);
+            if(amount) {
+                // Logic: NGN -> USDC
+                const receive = amount / state.rates.USDC_NGN;
+                document.getElementById('swapReceive').value = receive.toFixed(2);
+            }
+        }
+
+        function processSwap() {
+            const amount = parseFloat(document.getElementById('swapAmount').value);
+            if (!amount) return;
+            if (amount > state.wallets.NGN) return showToast("Insufficient NGN Balance!");
+
+            // Update State
+            const receive = amount / state.rates.USDC_NGN;
+            state.wallets.NGN -= amount;
+            state.wallets.USDC += receive;
+            state.history.unshift({
+                type: 'Swapped',
+                to: 'Self',
+                amount: `+${receive.toFixed(2)} USDC`,
+                date: 'Just Now'
+            });
+            saveState();
+            showToast("Swap Successful!");
+            router('wallet');
+        }
+
+        function showToast(msg) {
+            const x = document.getElementById("toast");
+            x.textContent = msg;
+            x.className = "show";
+            setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+        }
+
+        // Init App
+        router('home');
+    </script>
+</body>
+  </html>
